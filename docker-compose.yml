@@ -1,0 +1,46 @@
+version: '3.9'
+services:
+  accounts:
+    build:
+      context: docker/app
+    working_dir: /internal/accounts
+    volumes:
+      - ./internal:/internal
+    env_file:
+      - .env
+    environment:
+      APP_PORT: "8081"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+
+  transactions:
+    build:
+      context: docker/app
+    working_dir: /internal/transactions
+    volumes:
+      - ./internal:/internal
+    env_file:
+      - .env
+    environment:
+      APP_PORT: "8082"
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    platform: linux/amd64
+    env_file:
+      - .env
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:${MYSQL_PORT}"
+    restart: unless-stopped
+
+volumes:
+  db_data:

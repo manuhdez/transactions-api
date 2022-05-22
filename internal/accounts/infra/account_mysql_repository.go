@@ -1,19 +1,11 @@
 package infra
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
-
-type AccountMysql struct {
-	Id      string  `mysql:"id"`
-	Balance float32 `mysql:"balance"`
-}
-
-func (a AccountMysql) ToDomainAccount() account.Account {
-	return account.New(a.Id, a.Balance)
-}
 
 type AccountMysqlRepository struct {
 	db *sql.DB
@@ -26,4 +18,27 @@ func NewAccountMysqlRepository(db *sql.DB) AccountMysqlRepository {
 func (r AccountMysqlRepository) Create(a account.Account) error {
 	_, err := r.db.Exec("INSERT INTO accounts (id, balance) VALUES (?, ?)", a.Id(), a.Balance())
 	return err
+}
+
+func (r AccountMysqlRepository) FindAll(ctx context.Context) ([]account.Account, error) {
+	rows, err := r.db.QueryContext(ctx, "select * from accounts")
+	if err != nil {
+		return []account.Account{}, err
+	}
+
+	defer rows.Close()
+
+	var accounts []AccountMysql
+	for rows.Next() {
+		var account AccountMysql
+		if err := rows.Scan(&account.Id, &account.Balance); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+	if err := rows.Err(); err != nil {
+		return []account.Account{}, nil
+	}
+
+	return parseToDomainModels(accounts), nil
 }

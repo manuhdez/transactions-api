@@ -7,10 +7,11 @@ import (
 )
 
 type statusResponse struct {
-	Status string `json:"status"`
+	Status  string `json:"status"`
+	Service string `json:"service"`
 }
 
 func StatusController(ctx *gin.Context) {
-	r := statusResponse{"ok"}
+	r := statusResponse{"ok", "accounts service"}
 	ctx.JSON(http.StatusOK, r)
 }

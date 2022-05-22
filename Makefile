@@ -21,3 +21,10 @@ stop:
 
 status:
 	@docker ps --format "📦 {{.ID}} - {{.Image}} ⏱  {{.Status}}"
+
+# go commands
+# Testing
+test: test-accounts
+
+test-accounts:
+	@cd internal/accounts && go test ./... && cd -

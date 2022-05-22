@@ -16,15 +16,19 @@ type createAccountRequest struct {
 func CreateAccountController(service service.CreateService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req createAccountRequest
-		ctx.BindJSON(&req)
+		err := ctx.BindJSON(&req)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
 		acc := account.New(req.Id, req.Balance)
-		err := service.Create(acc)
+		err = service.Create(acc)
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
 			return
 		}
 
-		ctx.Status(http.StatusCreated)
+		ctx.JSON(http.StatusCreated, gin.H{"id": acc.Id()})
 	}
 }

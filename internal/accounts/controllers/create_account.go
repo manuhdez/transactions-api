@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
@@ -14,28 +13,18 @@ type createAccountRequest struct {
 	Balance float32 `json:"balance"`
 }
 
-func CreateAccountController(service service.CreateService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+func CreateAccountController(service service.CreateService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req createAccountRequest
+		ctx.BindJSON(&req)
+
+		acc := account.New(req.Id, req.Balance)
+		err := service.Create(acc)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 
-		var request createAccountRequest
-		err = json.Unmarshal(body, &request)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		acc := account.New(request.Id, request.Balance)
-		err = service.Create(acc)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusCreated)
+		ctx.Status(http.StatusCreated)
 	}
 }

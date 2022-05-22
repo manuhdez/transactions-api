@@ -1,16 +1,16 @@
 package bootstrap
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
 )
 
-func Server() http.Handler {
+func Server() *gin.Engine {
 	deps := Deps()
-	server := http.NewServeMux()
 
-	server.HandleFunc("/status", controllers.StatusController)
-	server.HandleFunc("/accounts", controllers.CreateAccountController(deps.Services.CreateAccount))
+	server := gin.Default()
+	server.GET("/status", controllers.StatusController)
+	server.POST("/accounts", controllers.CreateAccountController(deps.Services.CreateAccount))
+
 	return server
 }

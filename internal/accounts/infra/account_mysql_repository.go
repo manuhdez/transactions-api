@@ -42,3 +42,14 @@ func (r AccountMysqlRepository) FindAll(ctx context.Context) ([]account.Account,
 
 	return parseToDomainModels(accounts), nil
 }
+
+func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Account, error) {
+	row := r.db.QueryRowContext(ctx, "select * from accounts where id=?", id)
+
+	var a AccountMysql
+	if err := row.Scan(&a.Id, &a.Balance); err != nil {
+		return account.Account{}, err
+	}
+
+	return a.parseToDomainModel(), nil
+}

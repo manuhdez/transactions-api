@@ -20,3 +20,8 @@ func (m *AccountMockRepository) FindAll(c context.Context) ([]account.Account, e
 	args := m.Called(c)
 	return args.Get(0).([]account.Account), args.Error(1)
 }
+
+func (m *AccountMockRepository) Find(c context.Context, id string) (account.Account, error) {
+	args := m.Called(c, id)
+	return args.Get(0).(account.Account), args.Error(1)
+}

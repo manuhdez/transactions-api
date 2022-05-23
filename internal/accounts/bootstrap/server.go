@@ -10,8 +10,9 @@ func Server() *gin.Engine {
 
 	server := gin.Default()
 	server.GET("/status", controllers.StatusController)
-	server.POST("/accounts", controllers.CreateAccountController(deps.Services.CreateAccount))
 	server.GET("/accounts", controllers.FindAllController(deps.Services.FindAll))
+	server.POST("/accounts", controllers.CreateAccountController(deps.Services.CreateAccount))
+	server.GET("/accounts/:id", controllers.FindAccountController(deps.Services.FindAccount))
 
 	return server
 }

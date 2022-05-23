@@ -1,6 +1,8 @@
 package infra
 
 import (
+	"encoding/json"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
 
@@ -19,4 +21,9 @@ func NewJsonAccountList(list []account.Account) []AccountJson {
 		accounts = append(accounts, NewJsonAccount(item))
 	}
 	return accounts
+}
+
+func JsonStringFromAccount(a account.Account) string {
+	str, _ := json.Marshal(NewJsonAccount(a))
+	return string(str)
 }

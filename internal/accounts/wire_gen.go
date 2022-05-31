@@ -7,17 +7,24 @@
 package main
 
 import (
+	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
+	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
 // Injectors from wire.go:
 
-func InitializeServer() bootstrap.Server {
+func InitServer() bootstrap.Server {
+	statusController := controllers.NewStatusController()
 	db := bootstrap.InitializeDB()
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
-	services := bootstrap.InitializeServices(accountMysqlRepository)
-	controllers := bootstrap.InitializeControllers(services)
-	server := bootstrap.InitializeServer(controllers)
+	findAllService := service.NewFindAllService(accountMysqlRepository)
+	findAllAccountsController := controllers.NewFindAllAccountsControllers(findAllService)
+	createService := service.NewCreateService(accountMysqlRepository)
+	createAccountController := controllers.NewCreateAccountController(createService)
+	findAccountService := service.NewFindAccountService(accountMysqlRepository)
+	findAccountController := controllers.NewFindAccountController(findAccountService)
+	server := bootstrap.InitServer(statusController, findAllAccountsController, createAccountController, findAccountController)
 	return server
 }

@@ -1,6 +1,9 @@
 package bootstrap
 
-import "github.com/manuhdez/transactions-api/internal/accounts/controllers"
+import (
+	"github.com/google/wire"
+	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
+)
 
 type Controllers struct {
 	Status          controllers.StatusController
@@ -8,6 +11,13 @@ type Controllers struct {
 	FindAccount     controllers.FindAccountController
 	FindAllAccounts controllers.FindAllAccountsController
 }
+
+var InitControllers = wire.NewSet(
+	controllers.NewStatusController,
+	controllers.NewCreateAccountController,
+	controllers.NewFindAccountController,
+	controllers.NewFindAllAccountsControllers,
+)
 
 func InitializeControllers(s Services) Controllers {
 	return Controllers{

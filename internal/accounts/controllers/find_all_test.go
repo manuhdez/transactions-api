@@ -33,9 +33,8 @@ func TestFindAllController(t *testing.T) {
 		repo := new(mocks.AccountMockRepository)
 		repo.On("FindAll", mock.Anything).Return(accounts, nil)
 
-		service := service.NewFindAllService(repo)
-		handler := FindAllController(service)
-		handler(ctx)
+		s := service.NewFindAllService(repo)
+		NewFindAllAccountsControllers(s).Handle(ctx)
 
 		response := w.Result()
 		assert.Equal(t, http.StatusOK, response.StatusCode)

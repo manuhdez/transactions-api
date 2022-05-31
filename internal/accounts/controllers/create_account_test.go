@@ -20,6 +20,7 @@ type CreateAccountTestSuite struct {
 	Request    *http.Request
 	BadRequest *http.Request
 	Service    service.CreateService
+	Controller CreateAccountController
 }
 
 func (s *CreateAccountTestSuite) SetupTest() {
@@ -30,6 +31,7 @@ func (s *CreateAccountTestSuite) SetupTest() {
 	repository := new(mocks.AccountMockRepository)
 	repository.On("Create", mock.Anything).Return(nil)
 	s.Service = service.NewCreateService(repository)
+	s.Controller = NewCreateAccountController(s.Service)
 }
 
 func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {
@@ -37,8 +39,7 @@ func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {
 	ctx, _ := gin.CreateTestContext(w)
 	ctx.Request = s.Request
 
-	handler := CreateAccountController(s.Service)
-	handler(ctx)
+	s.Controller.Handle(ctx)
 
 	res := w.Result()
 	assert.Equal(s.T(), http.StatusCreated, res.StatusCode)
@@ -49,8 +50,7 @@ func (s *CreateAccountTestSuite) TestCreateAccountWithBadRequest() {
 	ctx, _ := gin.CreateTestContext(w)
 	ctx.Request = s.BadRequest
 
-	handler := CreateAccountController(s.Service)
-	handler(ctx)
+	s.Controller.Handle(ctx)
 
 	res := w.Result()
 	assert.Equal(s.T(), http.StatusBadRequest, res.StatusCode)

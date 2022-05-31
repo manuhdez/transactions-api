@@ -6,17 +6,10 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/config"
 )
 
-type Databases struct {
-	Mysql *sql.DB
-}
-
-func bootstrapDatabases() Databases {
+func InitializeDB() *sql.DB {
 	mysql, err := config.DBConnect()
 	if err != nil {
 		panic(err)
 	}
-
-	return Databases{
-		Mysql: mysql,
-	}
+	return mysql
 }

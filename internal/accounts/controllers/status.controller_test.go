@@ -20,7 +20,7 @@ func TestStatusController(t *testing.T) {
 		w := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(w)
 		ctx.Request = r
-		StatusController(ctx)
+		NewStatusController().Handle(ctx)
 
 		res := w.Result()
 		assert.Equal(t, res.StatusCode, http.StatusOK)
@@ -30,7 +30,7 @@ func TestStatusController(t *testing.T) {
 		w := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(w)
 		ctx.Request = r
-		StatusController(ctx)
+		NewStatusController().Handle(ctx)
 
 		result, err := ioutil.ReadAll(w.Result().Body)
 		require.NoError(t, err)

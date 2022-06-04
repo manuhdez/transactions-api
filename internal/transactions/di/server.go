@@ -1,18 +1,17 @@
 package di
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 )
 
 func NewServer(
 	statusController controllers.StatusController,
-) *http.ServeMux {
-	server := http.NewServeMux()
+) *gin.Engine {
+	srv := gin.Default()
 
 	// Register server routes
-	server.HandleFunc("/status", statusController.Handle)
+	srv.GET("/status", statusController.Handle)
 
-	return server
+	return srv
 }

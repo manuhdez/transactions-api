@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type StatusController struct{}
@@ -16,9 +17,7 @@ type statusResponse struct {
 	Service string `json:"service"`
 }
 
-func (StatusController) Handle(w http.ResponseWriter, _ *http.Request) {
+func (StatusController) Handle(ctx *gin.Context) {
 	status := statusResponse{"ok", "transactions"}
-	res, _ := json.Marshal(status)
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	ctx.JSON(http.StatusOK, status)
 }

@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 )
 
 func main() {
 	port := os.Getenv("APP_PORT")
 	server := InitServer()
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), server)
+	err := server.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
-		panic(err)
+		log.Fatalf("transactions service crashed: %s", err.Error())
 	}
 }

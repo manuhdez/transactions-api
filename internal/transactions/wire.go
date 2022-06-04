@@ -4,13 +4,12 @@
 package main
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
 )
 
-func InitServer() *http.ServeMux {
+func InitServer() *gin.Engine {
 	wire.Build(di.InitControllers, di.NewServer)
-	return &http.ServeMux{}
+	return &gin.Engine{}
 }

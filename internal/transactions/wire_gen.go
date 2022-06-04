@@ -7,15 +7,15 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
-	"net/http"
 )
 
 // Injectors from wire.go:
 
-func InitServer() *http.ServeMux {
+func InitServer() *gin.Engine {
 	statusController := controllers.NewStatusController()
-	serveMux := di.NewServer(statusController)
-	return serveMux
+	engine := di.NewServer(statusController)
+	return engine
 }

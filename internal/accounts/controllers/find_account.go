@@ -9,22 +9,28 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
-func FindAccountController(s service.FindAccountService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
+type FindAccountController struct {
+	service service.FindAccountService
+}
 
-		acc, err := s.Find(ctx, id)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+func NewFindAccountController(s service.FindAccountService) FindAccountController {
+	return FindAccountController{s}
+}
 
-		if (account.Account{} == acc) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "account not found"})
-			return
-		}
+func (c FindAccountController) Handle(ctx *gin.Context) {
+	id := ctx.Param("id")
 
-		response := infra.NewJsonAccount(acc)
-		ctx.JSON(http.StatusOK, response)
+	acc, err := c.service.Find(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
+	if (account.Account{} == acc) {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "account not found"})
+		return
+	}
+
+	response := infra.NewJsonAccount(acc)
+	ctx.JSON(http.StatusOK, response)
 }

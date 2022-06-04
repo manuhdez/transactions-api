@@ -22,7 +22,21 @@ stop:
 status:
 	@docker ps --format "📦 {{.ID}} - {{.Image}} ⏱  {{.Status}}"
 
+# dependencies
+# generate dependency tree
+deps: deps-accounts
+
+deps-accounts: tidy-accounts
+	@cd internal/accounts && wire && cd -
+
 # go commands
+#
+# Deps
+tidy: tidy-accounts
+
+tidy-accounts:
+	@cd internal/accounts && go mod tidy && cd -
+
 # Testing
 test: test-accounts
 

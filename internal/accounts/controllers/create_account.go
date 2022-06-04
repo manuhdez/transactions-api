@@ -13,22 +13,28 @@ type createAccountRequest struct {
 	Balance float32 `json:"balance"`
 }
 
-func CreateAccountController(service service.CreateService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var req createAccountRequest
-		err := ctx.BindJSON(&req)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+type CreateAccountController struct {
+	service service.CreateService
+}
 
-		acc := account.New(req.Id, req.Balance)
-		err = service.Create(acc)
-		if err != nil {
-			ctx.Status(http.StatusBadRequest)
-			return
-		}
+func NewCreateAccountController(s service.CreateService) CreateAccountController {
+	return CreateAccountController{s}
+}
 
-		ctx.JSON(http.StatusCreated, gin.H{"id": acc.Id()})
+func (c CreateAccountController) Handle(ctx *gin.Context) {
+	var req createAccountRequest
+	err := ctx.BindJSON(&req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	acc := account.New(req.Id, req.Balance)
+	err = c.service.Create(acc)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"id": acc.Id()})
 }

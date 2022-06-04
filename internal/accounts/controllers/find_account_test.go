@@ -21,7 +21,7 @@ type testSuite struct {
 	req        *http.Request
 	ctx        *gin.Context
 	repository *mocks.AccountMockRepository
-	service    service.FindAccountService
+	controller FindAccountController
 }
 
 func (s *testSuite) SetupTest() {
@@ -32,14 +32,13 @@ func (s *testSuite) SetupTest() {
 	ctx.Request = s.req
 	s.ctx = ctx
 	s.repository = new(mocks.AccountMockRepository)
-	s.service = service.NewFindAccountService(s.repository)
+	s.controller = NewFindAccountController(service.NewFindAccountService(s.repository))
 }
 
 func (s *testSuite) TestWithExistingAccount() {
 	expected := account.New("123", 33)
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(expected, nil)
-	handler := FindAccountController(s.service)
-	handler(s.ctx)
+	s.controller.Handle(s.ctx)
 
 	result := s.w.Body.String()
 	assert.Equal(s.T(), http.StatusOK, s.w.Code)
@@ -48,9 +47,7 @@ func (s *testSuite) TestWithExistingAccount() {
 
 func (s *testSuite) TestWithAccountNotFound() {
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(account.Account{}, nil)
-	handler := FindAccountController(s.service)
-	handler(s.ctx)
-
+	s.controller.Handle(s.ctx)
 	assert.Equal(s.T(), http.StatusNotFound, s.w.Code)
 }
 

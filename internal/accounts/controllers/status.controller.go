@@ -11,7 +11,13 @@ type statusResponse struct {
 	Service string `json:"service"`
 }
 
-func StatusController(ctx *gin.Context) {
+type StatusController struct{}
+
+func NewStatusController() StatusController {
+	return StatusController{}
+}
+
+func (c StatusController) Handle(ctx *gin.Context) {
 	r := statusResponse{"ok", "accounts service"}
 	ctx.JSON(http.StatusOK, r)
 }

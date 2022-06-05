@@ -10,6 +10,13 @@ import (
 )
 
 func InitServer() *gin.Engine {
-	wire.Build(di.InitControllers, di.NewServer)
+	wire.Build(
+		di.NewDBConnection,
+		di.InitRepositories,
+		di.InitServices,
+		di.InitControllers,
+		di.NewServer,
+	)
+
 	return &gin.Engine{}
 }

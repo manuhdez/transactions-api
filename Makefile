@@ -24,11 +24,13 @@ status:
 
 # dependencies
 # generate dependency tree
-deps: deps-accounts
+deps: deps-accounts deps-transactions
 
 deps-accounts: tidy-accounts
 	@cd internal/accounts && wire && cd -
 
+deps-transactions: tidy-transactions
+	@cd internal/transactions && wire && cd -
 # go commands
 #
 # Deps
@@ -36,6 +38,9 @@ tidy: tidy-accounts
 
 tidy-accounts:
 	@cd internal/accounts && go mod tidy && cd -
+
+tidy-transactions:
+	@cd internal/transactions && go mod tidy && cd -
 
 # Testing
 test: test-accounts

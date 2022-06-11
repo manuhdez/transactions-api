@@ -14,11 +14,13 @@ func InitServer(
 	findAll controllers.FindAllAccountsController,
 	create controllers.CreateAccountController,
 	find controllers.FindAccountController,
+	deleteAccount controllers.DeleteAccountController,
 ) Server {
 	engine := gin.Default()
 	engine.GET("/status", status.Handle)
 	engine.GET("/accounts", findAll.Handle)
 	engine.POST("/accounts", create.Handle)
 	engine.GET("/accounts/:id", find.Handle)
+	engine.DELETE("/accounts/:id", deleteAccount.Handle)
 	return Server{Engine: engine}
 }

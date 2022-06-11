@@ -53,3 +53,8 @@ func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Ac
 
 	return a.parseToDomainModel(), nil
 }
+
+func (r AccountMysqlRepository) Delete(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, "delete from accounts where id=?", id)
+	return err
+}

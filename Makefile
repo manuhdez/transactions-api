@@ -26,8 +26,11 @@ status:
 # generate dependency tree
 deps: deps-accounts
 
-deps-accounts: tidy-accounts
-	@cd internal/accounts && wire && cd -
+deps-accounts: 
+	@cd internal/accounts && \
+	wire && \
+	cd - && \
+	make tidy-accounts
 
 # go commands
 #

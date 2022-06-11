@@ -25,6 +25,8 @@ func InitServer() bootstrap.Server {
 	createAccountController := controllers.NewCreateAccountController(createService)
 	findAccountService := service.NewFindAccountService(accountMysqlRepository)
 	findAccountController := controllers.NewFindAccountController(findAccountService)
-	server := bootstrap.InitServer(statusController, findAllAccountsController, createAccountController, findAccountController)
+	deleteAccountService := service.NewDeleteAccountService(accountMysqlRepository)
+	deleteAccountController := controllers.NewDeleteAccountController(deleteAccountService)
+	server := bootstrap.InitServer(statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
 	return server
 }

@@ -25,11 +25,11 @@ type DepositRequest struct {
 func (c DepositController) Handle(ctx *gin.Context) {
 	var req DepositRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	deposit := transaction.NewTransaction(transaction.Deposit, req.Amount, req.Currency)
+	deposit := transaction.NewTransaction(transaction.Deposit, req.Account, req.Amount, req.Currency)
 
 	err := c.service.Invoke(ctx, deposit)
 	if err != nil {

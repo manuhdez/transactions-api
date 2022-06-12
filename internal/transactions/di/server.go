@@ -7,11 +7,13 @@ import (
 
 func NewServer(
 	statusController controllers.StatusController,
+	depositController controllers.DepositController,
 ) *gin.Engine {
 	srv := gin.Default()
 
 	// Register server routes
 	srv.GET("/status", statusController.Handle)
+	srv.POST("/deposit/:account", depositController.Handle)
 
 	return srv
 }

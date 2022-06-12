@@ -42,5 +42,17 @@ services:
       - "3306:${MYSQL_PORT}"
     restart: unless-stopped
 
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+      - rabbit_logs:/var/log/rabbitmq
+    restart: unless-stopped
+
 volumes:
   db_data:
+  rabbit_data:
+  rabbit_logs:

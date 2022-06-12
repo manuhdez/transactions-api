@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
 
@@ -11,10 +13,11 @@ import (
 // It receives a transaction repository to store the deposit.
 type Deposit struct {
 	repository transaction.Repository
+	bus        event.Bus
 }
 
-func NewDepositService(r transaction.Repository) Deposit {
-	return Deposit{r}
+func NewDepositService(r transaction.Repository, b event.Bus) Deposit {
+	return Deposit{r, b}
 }
 
 func (s Deposit) Invoke(ctx context.Context, t transaction.Transaction) error {
@@ -22,5 +25,17 @@ func (s Deposit) Invoke(ctx context.Context, t transaction.Transaction) error {
 		return errors.New("invalid transaction type")
 	}
 
-	return s.repository.Deposit(ctx, t)
+	err := s.repository.Deposit(ctx, t)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err := s.bus.Publish(ctx, event.DepositCreated{})
+		if err != nil {
+			log.Println("error publishing deposit created event:", err)
+		}
+	}()
+
+	return nil
 }

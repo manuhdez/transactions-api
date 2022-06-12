@@ -13,6 +13,7 @@ func InitServer() *gin.Engine {
 	wire.Build(
 		di.NewDBConnection,
 		di.InitRepositories,
+		di.InitBuses,
 		di.InitServices,
 		di.InitControllers,
 		di.NewServer,

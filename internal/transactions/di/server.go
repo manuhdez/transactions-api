@@ -13,7 +13,7 @@ func NewServer(
 
 	// Register server routes
 	srv.GET("/status", statusController.Handle)
-	srv.POST("/deposit/:account", depositController.Handle)
+	srv.POST("/deposit", depositController.Handle)
 
 	return srv
 }

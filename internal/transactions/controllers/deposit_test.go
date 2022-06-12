@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestDepositController(t *testing.T) {
+func TestDepositController_Handle(t *testing.T) {
 
 	t.Run("Returns a 201 status code", func(t *testing.T) {
 		// Arrange
@@ -44,7 +44,7 @@ func TestDepositController(t *testing.T) {
 		repo.On("Deposit", mock.Anything, mock.Anything).Return(nil)
 		w := httptest.NewRecorder()
 		ctx, _ := gin.CreateTestContext(w)
-		req := bytes.NewBufferString(`{"account": "123", "amount": "100", "currency": "EUR"}`)
+		req := bytes.NewBufferString(`{"amount": 100, "currency": "EUR"}`)
 		ctx.Request = httptest.NewRequest("POST", "/deposit", req)
 
 		// Act

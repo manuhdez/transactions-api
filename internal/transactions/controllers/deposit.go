@@ -17,7 +17,7 @@ func NewDepositController(s service.Deposit) DepositController {
 }
 
 type DepositRequest struct {
-	Account  string  `json:"account"`
+	Account  string  `json:"account" binding:"required"`
 	Amount   float32 `json:"amount"`
 	Currency string  `json:"currency"`
 }

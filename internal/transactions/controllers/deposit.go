@@ -17,9 +17,9 @@ func NewDepositController(s service.Deposit) DepositController {
 }
 
 type DepositRequest struct {
-	Account  string  `json:"account"`
-	Amount   float32 `json:"amount"`
-	Currency string  `json:"currency"`
+	Account  string  `json:"account" binding:"required"`
+	Amount   float32 `json:"amount" binding:"required"`
+	Currency string  `json:"currency" binding:"required"`
 }
 
 func (c DepositController) Handle(ctx *gin.Context) {

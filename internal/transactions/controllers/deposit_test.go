@@ -11,85 +11,87 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestDepositController_Success(t *testing.T) {
-	t.Run("Returns a 201 status code", func(t *testing.T) {
-		// Arrange
-		repo := new(mocks.TransactionMockRepository)
-		ser := service.NewDepositService(repo)
-		ctrl := NewDepositController(ser)
-		repo.On("Deposit", mock.Anything, mock.Anything).Return(nil)
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
-		req := bytes.NewBufferString(`{"account": "123", "amount": 100, "currency": "EUR"}`)
-		ctx.Request = httptest.NewRequest("POST", "/deposit", req)
-
-		// Act
-		ctrl.Handle(ctx)
-
-		// Assert
-		if w.Code != 201 {
-			t.Errorf("Expected status code 201, got %d", w.Code)
-		}
-		if w.Body.String() != `{"message":"Deposit successfully created"}` {
-			t.Errorf("Expected body message, got %s", w.Body.String())
-		}
-	})
+type Suite struct {
+	suite.Suite
+	repository *mocks.TransactionMockRepository
+	controller DepositController
+	ctx        *gin.Context
+	recorder   *httptest.ResponseRecorder
 }
 
-func TestDepositController_Error(t *testing.T) {
-	repo := new(mocks.TransactionMockRepository)
-	ser := service.NewDepositService(repo)
-	ctrl := NewDepositController(ser)
-	repo.On("Deposit", mock.Anything, mock.Anything).Return(nil)
+func (s *Suite) SetupTest() {
+	s.repository = new(mocks.TransactionMockRepository)
+	s.repository.On("Deposit", mock.Anything, mock.Anything).Return(nil)
 
-	t.Run("Returns a 400 status if the account id is missing", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
+	s.controller = NewDepositController(service.NewDepositService(s.repository))
+	s.recorder = httptest.NewRecorder()
 
-		body, err := json.Marshal(DepositRequest{Amount: 32, Currency: "EUR"})
-		if err != nil {
-			t.Fatalf("Error marshaling json: %v", err)
-		}
-		ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	ctx, _ := gin.CreateTestContext(s.recorder)
+	s.ctx = ctx
+}
 
-		ctrl.Handle(ctx)
+func (s *Suite) TestDepositController_Success() {
+	body, err := json.Marshal(DepositRequest{Account: "333", Amount: 100, Currency: "EUR"})
+	if err != nil {
+		s.Fail("Error marshaling json")
+	}
 
-		if w.Code != 400 {
-			t.Errorf("Expected status code 400, got %d", w.Code)
-		}
-	})
+	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	s.controller.Handle(s.ctx)
 
-	t.Run("Returns a 400 status if the amount is missing", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
-		body, err := json.Marshal(DepositRequest{Amount: 122, Currency: "EUR"})
-		if err != nil {
-			t.Errorf("Error marshalling json: %v", err)
-		}
-		ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	if s.recorder.Code != 201 {
+		s.T().Errorf("Expected status code 201, got %d", s.recorder.Code)
+	}
+	if s.recorder.Body.String() != `{"message":"Deposit successfully created"}` {
+		s.T().Errorf("Expected body message, got %s", s.recorder.Body.String())
+	}
+}
 
-		ctrl.Handle(ctx)
+func (s *Suite) TestDepositController_MissingAccount() {
+	body, err := json.Marshal(DepositRequest{Amount: 32, Currency: "EUR"})
+	if err != nil {
+		s.T().Fatalf("Error marshaling json: %v", err)
+	}
+	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 
-		if w.Code != 400 {
-			t.Errorf("Expected status code 400, got %d", w.Code)
-		}
-	})
+	s.controller.Handle(s.ctx)
 
-	t.Run("Returns a 400 status if the currency is missing", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
-		body, err := json.Marshal(DepositRequest{Account: "123", Amount: 12.3})
-		if err != nil {
-			t.Fatalf("Error marshalling json: %v", err)
-		}
-		ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	if s.recorder.Code != 400 {
+		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
+	}
+}
 
-		ctrl.Handle(ctx)
+func (s *Suite) TestDepositController_MissingAmount() {
+	body, err := json.Marshal(DepositRequest{Account: "112", Currency: "EUR"})
+	if err != nil {
+		s.T().Fatalf("Error marshaling json: %v", err)
+	}
+	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 
-		if w.Code != 400 {
-			t.Errorf("Expected status code 400, got %d", w.Code)
-		}
-	})
+	s.controller.Handle(s.ctx)
+
+	if s.recorder.Code != 400 {
+		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
+	}
+}
+
+func (s *Suite) TestDepositController_MissingCurrency() {
+	body, err := json.Marshal(DepositRequest{Account: "123", Amount: 32})
+	if err != nil {
+		s.T().Fatalf("Error marshaling json: %v", err)
+	}
+	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+
+	s.controller.Handle(s.ctx)
+
+	if s.recorder.Code != 400 {
+		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
+	}
+}
+
+func TestDepositController(t *testing.T) {
+	suite.Run(t, new(Suite))
 }

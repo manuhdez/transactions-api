@@ -3,7 +3,8 @@ package infra
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"log"
+	"time"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
@@ -17,6 +18,20 @@ func NewTransactionMysqlRepository(db *sql.DB) TransactionMysqlRepository {
 }
 
 func (r TransactionMysqlRepository) Deposit(ctx context.Context, transaction transaction.Transaction) error {
-	fmt.Println("Deposit", transaction)
+	_, err := r.db.ExecContext(
+		ctx,
+		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES (?, ?, ?, ?, ?)",
+		transaction.AccountId,
+		transaction.Amount,
+		transaction.Type,
+		transaction.Amount,
+		time.Now(),
+	)
+
+	if err != nil {
+		log.Printf("Error saving deposit: %e", err)
+		return err
+	}
+
 	return nil
 }

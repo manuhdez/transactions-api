@@ -37,5 +37,25 @@ func (r TransactionMysqlRepository) Deposit(ctx context.Context, transaction tra
 }
 
 func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
-	return []transaction.Transaction{}, nil
+	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions")
+	if err != nil {
+		return []transaction.Transaction{}, err
+	}
+
+	defer rows.Close()
+
+	var transactions []transaction.Transaction
+	for rows.Next() {
+		var t TransactionMysql
+		if er := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date); er != nil {
+			return []transaction.Transaction{}, er
+		}
+		transactions = append(transactions, t.ToDomainModel())
+	}
+
+	if err = rows.Err(); err != nil {
+		return []transaction.Transaction{}, err
+	}
+
+	return transactions, nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -34,7 +35,7 @@ func (s *testSuite) SetupTest() {
 func (s *testSuite) TestFindAllSuccess() {
 	expected := http.StatusOK
 
-	s.repository.On("FindAll", mock.Anything, mock.Anything).Return(nil)
+	s.repository.On("FindAll", mock.Anything, mock.Anything).Return([]transaction.Transaction{}, nil)
 	s.ctx.Request = httptest.NewRequest(http.MethodGet, "/transactions", nil)
 	s.controller.Handle(s.ctx)
 
@@ -45,7 +46,7 @@ func (s *testSuite) TestFindAllSuccess() {
 
 func (s *testSuite) TestFindAllError() {
 	expected := http.StatusInternalServerError
-	s.repository.On("FindAll", mock.Anything, mock.Anything).Return(errors.New("there was an error"))
+	s.repository.On("FindAll", mock.Anything, mock.Anything).Return([]transaction.Transaction{}, errors.New("there was an error"))
 	s.ctx.Request = httptest.NewRequest(http.MethodGet, "/transactions", nil)
 	s.controller.Handle(s.ctx)
 

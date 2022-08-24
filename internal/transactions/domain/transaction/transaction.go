@@ -1,20 +1,20 @@
 package transaction
 
-type transactionType string
+type Type string
 
 const (
-	Deposit    transactionType = "deposit"
-	Withdrawal transactionType = "withdrawal"
+	Deposit    Type = "deposit"
+	Withdrawal Type = "withdrawal"
 )
 
 type Transaction struct {
-	Type      transactionType
+	Type      Type
 	AccountId string
 	Amount    float32
 	Currency  string
 }
 
-func NewTransaction(transactionType transactionType, accountId string, amount float32, currency string) Transaction {
+func NewTransaction(transactionType Type, accountId string, amount float32, currency string) Transaction {
 	return Transaction{
 		Type:      transactionType,
 		AccountId: accountId,

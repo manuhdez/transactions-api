@@ -2,22 +2,25 @@ package bootstrap
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
 )
 
 type Server struct {
 	Engine *gin.Engine
 }
 
-func InitializeServer(c Controllers) Server {
-	engine := Engine(c)
-	return Server{engine}
-}
-
-func Engine(c Controllers) *gin.Engine {
-	server := gin.Default()
-	server.GET("/status", c.Status.Handle)
-	server.GET("/accounts", c.FindAllAccounts.Handle)
-	server.POST("/accounts", c.CreateAccount.Handle)
-	server.GET("/accounts/:id", c.FindAccount.Handle)
-	return server
+func InitServer(
+	status controllers.StatusController,
+	findAll controllers.FindAllAccountsController,
+	create controllers.CreateAccountController,
+	find controllers.FindAccountController,
+	deleteAccount controllers.DeleteAccountController,
+) Server {
+	engine := gin.Default()
+	engine.GET("/status", status.Handle)
+	engine.GET("/accounts", findAll.Handle)
+	engine.POST("/accounts", create.Handle)
+	engine.GET("/accounts/:id", find.Handle)
+	engine.DELETE("/accounts/:id", deleteAccount.Handle)
+	return Server{Engine: engine}
 }

@@ -25,3 +25,8 @@ func (m *AccountMockRepository) Find(c context.Context, id string) (account.Acco
 	args := m.Called(c, id)
 	return args.Get(0).(account.Account), args.Error(1)
 }
+
+func (m *AccountMockRepository) Delete(c context.Context, id string) error {
+	args := m.Called(c, id)
+	return args.Error(0)
+}

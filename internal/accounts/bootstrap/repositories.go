@@ -12,5 +12,6 @@ type Repositories struct {
 
 var InitializeRepositories = wire.NewSet(
 	InitializeDB,
+	wire.Bind(new(account.Repository), new(infra.AccountMysqlRepository)),
 	infra.NewAccountMysqlRepository,
 )

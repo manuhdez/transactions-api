@@ -35,3 +35,7 @@ func (r TransactionMysqlRepository) Deposit(ctx context.Context, transaction tra
 
 	return nil
 }
+
+func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
+	return []transaction.Transaction{}, nil
+}

@@ -22,6 +22,8 @@ func InitServer() *gin.Engine {
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
 	deposit := service.NewDepositService(transactionMysqlRepository)
 	depositController := controllers.NewDepositController(deposit)
-	engine := di.NewServer(statusController, depositController)
+	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
+	findAllTransactionsController := controllers.NewFindAllController(findAllTransactions)
+	engine := di.NewServer(statusController, depositController, findAllTransactionsController)
 	return engine
 }

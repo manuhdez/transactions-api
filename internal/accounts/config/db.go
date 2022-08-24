@@ -18,7 +18,7 @@ type DBConfig struct {
 
 func getDBConfig() DBConfig {
 	conf := DBConfig{
-		Host:     os.Getenv("MYSQL_HOST"),
+		Host:     os.Getenv("MYSQL_HOST_ACCOUNTS"),
 		User:     os.Getenv("MYSQL_USER"),
 		Password: os.Getenv("MYSQL_PASSWORD"),
 		Database: os.Getenv("MYSQL_DATABASE"),

@@ -15,3 +15,8 @@ func (m *TransactionMockRepository) Deposit(ctx context.Context, t transaction.T
 	args := m.Called(ctx, t)
 	return args.Error(0)
 }
+
+func (m *TransactionMockRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]transaction.Transaction), args.Error(1)
+}

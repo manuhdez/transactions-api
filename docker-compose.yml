@@ -13,7 +13,7 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - db
+      - accounts_db
 
   transactions:
     build:
@@ -28,18 +28,32 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - db
+      - transactions_db
 
-  db:
+  # Database for accounts service
+  accounts_db:
     image: mysql:8
     platform: linux/amd64
     env_file:
       - .env
     volumes:
-      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-      - db_data:/var/lib/mysql
+      - ./sql/accounts/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - accounts_data:/var/lib/mysql
     ports:
-      - "3306:${MYSQL_PORT}"
+      - "3306:${MYSQL_PORT_ACCOUNTS}"
+    restart: unless-stopped
+
+ # Database for transactions service
+  transactions_db:
+    image: mysql:8
+    platform: linux/amd64
+    env_file:
+      - .env
+    volumes:
+      - ./sql/transactions/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - transactions_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT_TRANSACTIONS}:3306"
     restart: unless-stopped
 
   rabbit:
@@ -53,6 +67,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  db_data:
+  accounts_data:
+  transactions_data:
   rabbit_data:
   rabbit_logs:

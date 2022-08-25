@@ -32,12 +32,16 @@ deps-accounts:
 	cd - && \
 	make tidy-accounts
 
-deps-transactions: tidy-transactions
-	@cd internal/transactions && wire && cd -
+deps-transactions:
+	@cd internal/transactions && \
+	wire && \
+	cd - && \
+	make tidy-transactions
+
 # go commands
 #
 # Deps
-tidy: tidy-accounts
+tidy: tidy-accounts tidy-transactions
 
 tidy-accounts:
 	@cd internal/accounts && go mod tidy && cd -

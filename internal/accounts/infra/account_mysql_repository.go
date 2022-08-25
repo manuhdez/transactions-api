@@ -47,7 +47,14 @@ func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Ac
 	row := r.db.QueryRowContext(ctx, "select * from accounts where id=?", id)
 
 	var a AccountMysql
-	if err := row.Scan(&a.Id, &a.Balance); err != nil {
+	err := row.Scan(&a.Id, &a.Balance)
+
+	// If the account the user is looking for does not exist, it should not throw an error
+	if err.Error() == "sql: no rows in result set" {
+		return account.Account{}, nil
+	}
+
+	if err != nil {
 		return account.Account{}, err
 	}
 

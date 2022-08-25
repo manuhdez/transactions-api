@@ -11,6 +11,7 @@ import (
 func InitServer() bootstrap.Server {
 	wire.Build(
 		bootstrap.InitializeRepositories,
+		bootstrap.InitBuses,
 		bootstrap.InitServices,
 		bootstrap.InitControllers,
 		bootstrap.InitServer,

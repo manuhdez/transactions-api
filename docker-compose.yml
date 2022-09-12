@@ -14,6 +14,7 @@ services:
       - "8081:8081"
     depends_on:
       - accounts_db
+      - rabbit
 
   transactions:
     build:
@@ -29,6 +30,7 @@ services:
       - "8082:8082"
     depends_on:
       - transactions_db
+      - rabbit
 
   # Database for accounts service
   accounts_db:

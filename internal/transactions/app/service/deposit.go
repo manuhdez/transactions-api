@@ -31,7 +31,7 @@ func (s Deposit) Invoke(ctx context.Context, t transaction.Transaction) error {
 	}
 
 	go func() {
-		err := s.bus.Publish(ctx, event.DepositCreated{})
+		err := s.bus.Publish(ctx, event.NewDepositCreated(t.AccountId, t.Amount))
 		if err != nil {
 			log.Println("error publishing deposit created event:", err)
 		}

@@ -16,6 +16,7 @@ type Type string
 
 type Event interface {
 	Type() Type
+	Body() []byte
 }
 
 var (

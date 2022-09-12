@@ -42,16 +42,17 @@ func (b EventBus) Publish(_ context.Context, event event.Event) error {
 		return err
 	}
 
-	body := string(event.Type())
-
+	fmt.Printf("Event with type: %s and body: %s", event.Type(), event.Body())
 	err = ch.Publish("", q.Name, false, false, amqp.Publishing{
+		Type:        string(event.Type()),
 		ContentType: "text/plain",
-		Body:        []byte(body),
+		Body:        event.Body(),
 	})
+
 	if err != nil {
 		return err
 	}
-	log.Println("Message %s sent!", event.Type())
+	log.Printf("Message %s sent!", event.Type())
 	return nil
 }
 

@@ -2,10 +2,10 @@ package infra
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/config"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
 	"github.com/streadway/amqp"
@@ -21,41 +21,23 @@ type EventBus struct {
 	handlers   map[event.Type]event.Handler
 }
 
+type Message struct {
+	eventType event.Type
+	body      []byte
+}
+
+func (m Message) Type() event.Type {
+	return m.eventType
+}
+
+func (m Message) Body() []byte {
+	return m.body
+}
+
 func NewAmqpConnection() (*amqp.Connection, error) {
 	conf := config.NewRabbitMQConfig()
 	uri := fmt.Sprintf("amqp://%s:%s@%s:%s/", conf.User, conf.Password, conf.Host, conf.Port)
 	return amqp.Dial(uri)
-}
-
-func readMessages(con *amqp.Connection) {
-	c, err := con.Channel()
-	if err != nil {
-		log.Printf("Cannot consume queued messages: %e", err)
-		return
-	}
-
-	messages, err := c.Consume(queueName, queueConsumer, false, false, false, false, nil)
-	if err != nil {
-		log.Printf("Cannot consume queued messages: %e", err)
-		return
-	}
-
-	var forever chan struct{}
-
-	go func() {
-		for d := range messages {
-			log.Printf("Received a message: %s", d.Body)
-		}
-	}()
-
-	log.Printf("Waiting for messages. To exit press CTRL+C")
-	<-forever
-}
-
-func getEventHandlers() map[event.Type]event.Handler {
-	var handlers = make(map[event.Type]event.Handler)
-	handlers[handler.DepositCreatedType] = handler.DepositCreated{}
-	return handlers
 }
 
 func createDefaultQueue(con *amqp.Connection) error {
@@ -82,9 +64,7 @@ func NewEventBus() EventBus {
 		log.Fatalf("Failed to create message queue: %e", err)
 	}
 
-	go readMessages(con)
-
-	return EventBus{con, getEventHandlers()}
+	return EventBus{con, make(map[event.Type]event.Handler)}
 }
 
 func (b EventBus) Publish(_ context.Context, event event.Event) error {
@@ -116,4 +96,51 @@ func (b EventBus) Publish(_ context.Context, event event.Event) error {
 
 func (b EventBus) Subscribe(t event.Type, h event.Handler) {
 	b.handlers[t] = h
+}
+
+func (b EventBus) Listen() {
+	c, err := b.connection.Channel()
+	if err != nil {
+		log.Printf("Cannot consume queued messages: %e", err)
+		return
+	}
+
+	messages, err := c.Consume(queueName, queueConsumer, false, false, false, false, nil)
+	if err != nil {
+		log.Printf("Cannot consume queued messages: %e", err)
+		return
+	}
+
+	var forever chan struct{}
+
+	type messageBody struct {
+		Type string `json:"type"`
+	}
+
+	go func() {
+		for d := range messages {
+
+			var m messageBody
+			err := json.Unmarshal(d.Body, &m)
+			if err != nil {
+				log.Printf("Error parsing message: %e", err)
+			}
+
+			log.Printf("Received a message from with type: %s", m.Type)
+
+			// get the type from the message body
+
+			h, ok := b.handlers[event.Type(m.Type)]
+			if ok != true {
+				log.Printf("handler not ok")
+				return
+
+			}
+
+			_ = h.Handle(context.Background(), Message{event.Type(m.Type), d.Body})
+		}
+	}()
+
+	log.Printf("Waiting for messages. To exit press CTRL+C")
+	<-forever
 }

@@ -13,6 +13,7 @@ func InitServer() bootstrap.Server {
 		bootstrap.InitializeRepositories,
 		bootstrap.InitBuses,
 		bootstrap.InitServices,
+		bootstrap.InitHandlers,
 		bootstrap.InitControllers,
 		bootstrap.InitServer,
 	)

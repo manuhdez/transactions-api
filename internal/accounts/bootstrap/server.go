@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
 )
@@ -13,6 +14,7 @@ type Server struct {
 
 func InitServer(
 	eventBus event.Bus,
+	depositCreatedHandler handler.DepositCreated,
 	status controllers.StatusController,
 	findAll controllers.FindAllAccountsController,
 	create controllers.CreateAccountController,
@@ -25,5 +27,8 @@ func InitServer(
 	engine.POST("/accounts", create.Handle)
 	engine.GET("/accounts/:id", find.Handle)
 	engine.DELETE("/accounts/:id", deleteAccount.Handle)
+
+	eventBus.Subscribe(handler.DepositCreatedType, depositCreatedHandler)
+
 	return Server{Engine: engine, EventBus: eventBus}
 }

@@ -7,6 +7,7 @@
 package main
 
 import (
+	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
 	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
@@ -17,9 +18,11 @@ import (
 
 func InitServer() bootstrap.Server {
 	eventBus := infra.NewEventBus()
-	statusController := controllers.NewStatusController()
 	db := bootstrap.InitializeDB()
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
+	increaseBalanceService := service.NewIncreaseBalanceService(accountMysqlRepository)
+	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
+	statusController := controllers.NewStatusController()
 	findAllService := service.NewFindAllService(accountMysqlRepository)
 	findAllAccountsController := controllers.NewFindAllAccountsControllers(findAllService)
 	createService := service.NewCreateService(accountMysqlRepository, eventBus)
@@ -28,6 +31,6 @@ func InitServer() bootstrap.Server {
 	findAccountController := controllers.NewFindAccountController(findAccountService)
 	deleteAccountService := service.NewDeleteAccountService(accountMysqlRepository)
 	deleteAccountController := controllers.NewDeleteAccountController(deleteAccountService)
-	server := bootstrap.InitServer(eventBus, statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
+	server := bootstrap.InitServer(eventBus, depositCreated, statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
 	return server
 }

@@ -21,19 +21,6 @@ type EventBus struct {
 	handlers   map[event.Type]event.Handler
 }
 
-type Message struct {
-	eventType event.Type
-	body      []byte
-}
-
-func (m Message) Type() event.Type {
-	return m.eventType
-}
-
-func (m Message) Body() []byte {
-	return m.body
-}
-
 func NewAmqpConnection() (*amqp.Connection, error) {
 	conf := config.NewRabbitMQConfig()
 	uri := fmt.Sprintf("amqp://%s:%s@%s:%s/", conf.User, conf.Password, conf.Host, conf.Port)
@@ -113,34 +100,35 @@ func (b EventBus) Listen() {
 
 	var forever chan struct{}
 
-	type messageBody struct {
-		Type string `json:"type"`
-	}
-
-	go func() {
-		for d := range messages {
-
-			var m messageBody
-			err := json.Unmarshal(d.Body, &m)
-			if err != nil {
-				log.Printf("Error parsing message: %e", err)
-			}
-
-			log.Printf("Received a message from with type: %s", m.Type)
-
-			// get the type from the message body
-
-			h, ok := b.handlers[event.Type(m.Type)]
-			if ok != true {
-				log.Printf("handler not ok")
-				return
-
-			}
-
-			_ = h.Handle(context.Background(), Message{event.Type(m.Type), d.Body})
-		}
-	}()
+	go b.handleMessages(messages)
 
 	log.Printf("Waiting for messages. To exit press CTRL+C")
 	<-forever
+}
+
+type messageBody struct {
+	Type string `json:"type"`
+}
+
+func (b EventBus) handleMessages(messages <-chan amqp.Delivery) {
+
+	for d := range messages {
+
+		var m messageBody
+		e := json.Unmarshal(d.Body, &m)
+		if e != nil {
+			log.Printf("Error parsing message: %e", e)
+		}
+
+		log.Printf("Received a message from with type: %s", m.Type)
+
+		h, ok := b.handlers[event.Type(m.Type)]
+		if ok != true {
+			log.Printf("handler not ok")
+			return
+
+		}
+
+		_ = h.Handle(context.Background(), Event{event.Type(m.Type), d.Body})
+	}
 }

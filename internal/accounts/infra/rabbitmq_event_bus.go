@@ -120,7 +120,7 @@ func (b EventBus) handleMessages(messages <-chan amqp.Delivery) {
 			log.Printf("Error parsing message: %e", e)
 		}
 
-		log.Printf("Received a message from with type: %s", m.Type)
+		log.Printf("Received a message with type: %s\n", m.Type)
 
 		h, ok := b.handlers[event.Type(m.Type)]
 		if ok != true {
@@ -129,6 +129,16 @@ func (b EventBus) handleMessages(messages <-chan amqp.Delivery) {
 
 		}
 
-		_ = h.Handle(context.Background(), Event{event.Type(m.Type), d.Body})
+		e = h.Handle(context.Background(), Event{event.Type(m.Type), d.Body})
+		if e != nil {
+			log.Printf("error handling event: %e", e)
+			return
+		}
+
+		e = d.Ack(false)
+		if e != nil {
+			log.Printf("error acknowledging message: %e", e)
+			return
+		}
 	}
 }

@@ -49,6 +49,12 @@ func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Ac
 	var a AccountMysql
 	err := row.Scan(&a.Id, &a.Balance)
 
+	// this check was necessary to avoid nil pointer error
+	// TODO: solve nil pointer error and remove this check
+	if (a != AccountMysql{}) {
+		return a.parseToDomainModel(), nil
+	}
+
 	// If the account the user is looking for does not exist, it should not throw an error
 	if err.Error() == "sql: no rows in result set" {
 		return account.Account{}, nil
@@ -63,5 +69,10 @@ func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Ac
 
 func (r AccountMysqlRepository) Delete(ctx context.Context, id string) error {
 	_, err := r.db.ExecContext(ctx, "delete from accounts where id=?", id)
+	return err
+}
+
+func (r AccountMysqlRepository) UpdateBalance(ctx context.Context, id string, newBalance float32) error {
+	_, err := r.db.ExecContext(ctx, "update accounts set balance = ? where id = ?", newBalance, id)
 	return err
 }

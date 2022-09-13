@@ -1,7 +1,8 @@
 package service
 
 import (
-	"fmt"
+	"context"
+	"log"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
@@ -15,6 +16,18 @@ func NewIncreaseBalanceService(repository account.Repository) IncreaseBalanceSer
 }
 
 func (s IncreaseBalanceService) Increase(accountId string, amount float32) error {
-	fmt.Printf("Increase account %s balance by %f", accountId, amount)
+	a, err := s.repository.Find(context.Background(), accountId)
+	if err != nil {
+		log.Printf("Failed to find repository: %e", err)
+		return err
+	}
+
+	newBalance := a.Balance() + amount
+	err = s.repository.UpdateBalance(context.Background(), accountId, newBalance)
+	if err != nil {
+		log.Printf("Failed to update balance: %e", err)
+		return err
+	}
+
 	return nil
 }

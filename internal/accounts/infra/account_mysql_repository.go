@@ -30,13 +30,13 @@ func (r AccountMysqlRepository) FindAll(ctx context.Context) ([]account.Account,
 
 	var accounts []AccountMysql
 	for rows.Next() {
-		var account AccountMysql
-		if err := rows.Scan(&account.Id, &account.Balance); err != nil {
+		var acc AccountMysql
+		if err = rows.Scan(&acc.Id, &acc.Balance); err != nil {
 			return nil, err
 		}
-		accounts = append(accounts, account)
+		accounts = append(accounts, acc)
 	}
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return []account.Account{}, nil
 	}
 

@@ -17,6 +17,7 @@ import (
 type Suite struct {
 	suite.Suite
 	repository *mocks.TransactionMockRepository
+	bus        *mocks.EventBus
 	controller DepositController
 	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
@@ -26,7 +27,10 @@ func (s *Suite) SetupTest() {
 	s.repository = new(mocks.TransactionMockRepository)
 	s.repository.On("Deposit", mock.Anything, mock.Anything).Return(nil)
 
-	s.controller = NewDepositController(service.NewDepositService(s.repository))
+	s.bus = new(mocks.EventBus)
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
+
+	s.controller = NewDepositController(service.NewDepositService(s.repository, s.bus))
 	s.recorder = httptest.NewRecorder()
 
 	ctx, _ := gin.CreateTestContext(s.recorder)

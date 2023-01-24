@@ -30,7 +30,11 @@ func (s *CreateAccountTestSuite) SetupTest() {
 
 	repository := new(mocks.AccountMockRepository)
 	repository.On("Create", mock.Anything).Return(nil)
-	s.Service = service.NewCreateService(repository)
+
+	bus := new(mocks.EventBus)
+	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
+
+	s.Service = service.NewCreateService(repository, bus)
 	s.Controller = NewCreateAccountController(s.Service)
 }
 

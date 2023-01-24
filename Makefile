@@ -20,7 +20,7 @@ stop:
 	@docker-compose stop
 
 status:
-	@docker ps --format "📦 {{.ID}} - {{.Image}} ⏱  {{.Status}}"
+	@docker ps --format "📦 {{.ID}} - {{.Names}} {{.Ports}}"
 
 # dependencies
 # generate dependency tree
@@ -50,7 +50,10 @@ tidy-transactions:
 	@cd internal/transactions && go mod tidy && cd -
 
 # Testing
-test: test-accounts
+test: test-accounts test-transactions
 
 test-accounts:
+	@cd internal/accounts && go test ./... && cd -
+
+test-transactions:
 	@cd internal/accounts && go test ./... && cd -

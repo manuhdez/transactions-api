@@ -11,8 +11,6 @@ type Bus interface {
 	Listen()
 }
 
-//go:generate mockery --case=snake --outpkg=mocks --output=../../test/mocks --name=Bus
-
 type Type string
 
 type Event interface {

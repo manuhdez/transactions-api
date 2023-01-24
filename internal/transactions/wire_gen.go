@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
@@ -16,15 +15,15 @@ import (
 
 // Injectors from wire.go:
 
-func InitServer() *gin.Engine {
+func InitServer() di.Server {
+	eventBus := infra.NewEventBus()
 	statusController := controllers.NewStatusController()
 	db := di.NewDBConnection()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
-	eventBus := infra.NewEventBus()
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	depositController := controllers.NewDepositController(deposit)
 	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
 	findAllTransactionsController := controllers.NewFindAllController(findAllTransactions)
-	engine := di.NewServer(statusController, depositController, findAllTransactionsController)
-	return engine
+	server := di.NewServer(eventBus, statusController, depositController, findAllTransactionsController)
+	return server
 }

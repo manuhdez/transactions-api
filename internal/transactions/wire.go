@@ -4,12 +4,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
 )
 
-func InitServer() *gin.Engine {
+func InitServer() di.Server {
 	wire.Build(
 		di.NewDBConnection,
 		di.InitRepositories,
@@ -19,5 +18,5 @@ func InitServer() *gin.Engine {
 		di.NewServer,
 	)
 
-	return &gin.Engine{}
+	return di.Server{}
 }

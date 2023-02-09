@@ -2,7 +2,6 @@ package infra
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -12,7 +11,8 @@ import (
 )
 
 const (
-	queueName     = "hello"
+	exchangeName  = "transactions-api-exchange"
+	queueName     = "accounts-queue"
 	queueConsumer = "accounts"
 )
 
@@ -33,10 +33,22 @@ func createDefaultQueue(con *amqp.Connection) error {
 		return err
 	}
 
-	_, err = ch.QueueDeclare("hello", false, false, false, false, nil)
+	err = ch.ExchangeDeclare(exchangeName, "topic", true, false, false, false, nil)
+	if err != nil {
+		log.Fatalf("Failed to create exchange: %e", err)
+	}
+
+	_, err = ch.QueueDeclare(queueName, false, false, false, false, nil)
 	if err != nil {
 		return err
 	}
+
+	routingKey := "event.transactions.*"
+	err = ch.QueueBind(queueName, routingKey, exchangeName, false, nil)
+	if err != nil {
+		log.Fatalf("Failed to bind queue `%s` to the exchange `%s`: %e", queueName, exchangeName, err)
+	}
+
 	return nil
 }
 
@@ -62,16 +74,11 @@ func (b EventBus) Publish(_ context.Context, event event.Event) error {
 
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(queueName, false, false, false, false, nil)
-	if err != nil {
-		return err
-	}
-
-	body := event.Type()
-
-	err = ch.Publish("", q.Name, false, false, amqp.Publishing{
+	key := string(event.Type())
+	err = ch.Publish(exchangeName, key, false, false, amqp.Publishing{
+		Type:        key,
 		ContentType: "text/plain",
-		Body:        []byte(body),
+		Body:        event.Body(),
 	})
 	if err != nil {
 		return err
@@ -111,33 +118,24 @@ type messageBody struct {
 }
 
 func (b EventBus) handleMessages(messages <-chan amqp.Delivery) {
+	for msg := range messages {
+		log.Printf("Received event with type: %s\n", msg.Type)
 
-	for d := range messages {
-
-		var m messageBody
-		e := json.Unmarshal(d.Body, &m)
-		if e != nil {
-			log.Printf("Error parsing message: %e", e)
-		}
-
-		log.Printf("Received a message with type: %s\n", m.Type)
-
-		h, ok := b.handlers[event.Type(m.Type)]
-		if ok != true {
-			log.Printf("handler not ok")
-			return
-
-		}
-
-		e = h.Handle(context.Background(), Event{event.Type(m.Type), d.Body})
-		if e != nil {
-			log.Printf("error handling event: %e", e)
+		handler, ok := b.handlers[event.Type(msg.Type)]
+		if !ok {
+			log.Printf("Handler for event type %s does not exist", msg.Type)
 			return
 		}
 
-		e = d.Ack(false)
-		if e != nil {
-			log.Printf("error acknowledging message: %e", e)
+		err := handler.Handle(context.Background(), Event{event.Type(msg.Type), msg.Body})
+		if err != nil {
+			log.Printf("error handling event %s: %e", msg.Type, err)
+			return
+		}
+
+		err = msg.Ack(false)
+		if err != nil {
+			log.Printf("error acknowledging message: %e", err)
 			return
 		}
 	}

@@ -2,8 +2,7 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
-	"log"
+	"fmt"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
@@ -25,10 +24,9 @@ func NewHandlerDepositCreated(s service.IncreaseBalanceService) DepositCreated {
 }
 
 func (h DepositCreated) Handle(_ context.Context, e event.Event) error {
-	var data depositCreatedEventBody
-	err := json.Unmarshal(e.Body(), &data)
+	data, err := event.NewDepositCreatedBody(e.Body())
 	if err != nil {
-		log.Printf("Error parsing created deposit event: %e", err)
+		fmt.Printf("error parsing event data")
 	}
 
 	return h.service.Increase(data.Account, data.Amount)

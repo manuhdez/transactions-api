@@ -2,7 +2,6 @@ package infra
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -12,7 +11,8 @@ import (
 )
 
 const (
-	queueName     = "hello"
+	exchangeName  = "transactions-api-exchange"
+	queueName     = "transactions-queue"
 	queueConsumer = "transactions"
 )
 
@@ -33,6 +33,27 @@ func NewEventBus() EventBus {
 		log.Fatalf("Failed to connect to RabbitMQ: %s", err)
 	}
 
+	channel, err := con.Channel()
+	if err != nil {
+		log.Fatalf("Failed to open channel to RabbitMQ: %e", err)
+	}
+
+	err = channel.ExchangeDeclare(exchangeName, "topic", true, false, false, false, nil)
+	if err != nil {
+		log.Fatalf("Failed to create exchange: %e", err)
+	}
+
+	_, err = channel.QueueDeclare(queueName, true, false, false, false, nil)
+	if err != nil {
+		log.Fatalf("Failed to declare queue %s: %e", queueName, err)
+	}
+
+	routingKey := "event.accounts.*"
+	err = channel.QueueBind(queueName, routingKey, exchangeName, false, nil)
+	if err != nil {
+		log.Fatalf("Failed to bind queue `%s` to the exchange `%s`: %e", queueName, exchangeName, err)
+	}
+
 	return EventBus{con, make(map[event.Type]event.Handler)}
 }
 
@@ -43,14 +64,9 @@ func (b EventBus) Publish(_ context.Context, event event.Event) error {
 	}
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare("hello", false, false, false, false, nil)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Event with type: %s and body: %s", event.Type(), event.Body())
-	err = ch.Publish("", q.Name, false, false, amqp.Publishing{
-		Type:        string(event.Type()),
+	key := string(event.Type())
+	err = ch.Publish(exchangeName, key, false, false, amqp.Publishing{
+		Type:        key,
 		ContentType: "text/plain",
 		Body:        event.Body(),
 	})
@@ -92,33 +108,24 @@ type messageBody struct {
 }
 
 func (b EventBus) handleMessages(messages <-chan amqp.Delivery) {
-	for message := range messages {
+	for msg := range messages {
+		log.Printf("Received event with type: %s\n", msg.Type)
 
-		var m messageBody
-		err := json.Unmarshal(message.Body, &m)
-		if err != nil {
-			log.Printf("Error parsing message: %e", err)
-			return
-		}
-
-		log.Printf("Received event with type: %s\n", m.Type)
-
-		handler, ok := b.handlers[event.Type(m.Type)]
+		handler, ok := b.handlers[event.Type(msg.Type)]
 		if !ok {
-			log.Printf("Handler for event type %s does not exist", m.Type)
+			log.Printf("⚠️  The event `%s` cannot be handled", msg.Type)
 			return
 		}
 
-		// Trigger the event handler
-		err = handler.Handle(context.Background(), Event{event.Type(m.Type), message.Body})
+		err := handler.Handle(context.Background(), Event{event.Type(msg.Type), msg.Body})
 		if err != nil {
-			log.Printf("Error handling event `%s`: %e", m.Type, err)
+			log.Printf("❌ There was an error while handling the event `%s`: %e", msg.Type, err)
 			return
 		}
 
-		err = message.Ack(false)
+		err = msg.Ack(false)
 		if err != nil {
-			log.Printf("Error acknowledging event `%s`: %e", m.Type, err)
+			log.Printf("❌ Cannot ack event `%s`: %e", msg.Type, err)
 			return
 		}
 	}

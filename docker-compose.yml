@@ -12,6 +12,7 @@ services:
       APP_PORT: "8081"
     ports:
       - "8081:8081"
+    restart: always
     depends_on:
       - accounts_db
       - rabbit
@@ -28,6 +29,7 @@ services:
       APP_PORT: "8082"
     ports:
       - "8082:8082"
+    restart: always
     depends_on:
       - transactions_db
       - rabbit

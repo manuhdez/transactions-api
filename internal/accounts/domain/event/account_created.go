@@ -25,5 +25,5 @@ func (a AccountCreated) Type() Type {
 }
 
 func (a AccountCreated) Body() []byte {
-	return nil
+	return a.body
 }

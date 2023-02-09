@@ -21,3 +21,5 @@ func (m *EventBus) Publish(ctx context.Context, e event.Event) error {
 func (m *EventBus) Subscribe(t event.Type, handler event.Handler) {
 	m.Called(t, handler)
 }
+
+func (m *EventBus) Listen() {}

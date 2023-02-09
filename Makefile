@@ -56,4 +56,13 @@ test-accounts:
 	@cd internal/accounts && go test ./... && cd -
 
 test-transactions:
-	@cd internal/accounts && go test ./... && cd -
+	@cd internal/transactions && go test ./... && cd -
+
+# Code linting
+lint: lint-accounts lint-transactions
+
+lint-accounts:
+	@cd internal/accounts && go vet ./... && cd -
+
+lint-transactions:
+	@cd internal/transactions && go vet ./... && cd -

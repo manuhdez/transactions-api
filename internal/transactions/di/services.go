@@ -6,5 +6,5 @@ import (
 )
 
 var (
-	InitServices = wire.NewSet(service.NewDepositService, service.NewFindAllTransactionsService)
+	InitServices = wire.NewSet(service.NewDepositService, service.NewFindAllTransactionsService, service.NewCreateAccountService)
 )

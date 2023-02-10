@@ -2,6 +2,7 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 )
@@ -13,6 +14,7 @@ type Server struct {
 
 func NewServer(
 	eventBus event.Bus,
+	accountCreatedHandler handler.AccountCreated,
 	statusController controllers.StatusController,
 	depositController controllers.DepositController,
 	findAllTransactionsController controllers.FindAllTransactionsController,
@@ -23,6 +25,9 @@ func NewServer(
 	srv.GET("/status", statusController.Handle)
 	srv.POST("/deposit", depositController.Handle)
 	srv.GET("/transactions", findAllTransactionsController.Handle)
+
+	// Register event handlers
+	eventBus.Subscribe(event.AccountCreatedType, accountCreatedHandler)
 
 	return Server{Engine: srv, EventBus: eventBus}
 }

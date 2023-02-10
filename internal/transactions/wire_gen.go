@@ -7,6 +7,7 @@
 package main
 
 import (
+	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
@@ -17,13 +18,16 @@ import (
 
 func InitServer() di.Server {
 	eventBus := infra.NewEventBus()
-	statusController := controllers.NewStatusController()
 	db := di.NewDBConnection()
+	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
+	createAccount := service.NewCreateAccountService(accountMysqlRepository)
+	accountCreated := handler.NewAccountCreated(createAccount)
+	statusController := controllers.NewStatusController()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	depositController := controllers.NewDepositController(deposit)
 	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
 	findAllTransactionsController := controllers.NewFindAllController(findAllTransactions)
-	server := di.NewServer(eventBus, statusController, depositController, findAllTransactionsController)
+	server := di.NewServer(eventBus, accountCreated, statusController, depositController, findAllTransactionsController)
 	return server
 }

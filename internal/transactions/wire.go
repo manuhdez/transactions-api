@@ -14,6 +14,7 @@ func InitServer() di.Server {
 		di.InitRepositories,
 		di.InitBuses,
 		di.InitServices,
+		di.InitHandlers,
 		di.InitControllers,
 		di.NewServer,
 	)

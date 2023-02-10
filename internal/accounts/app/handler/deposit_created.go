@@ -14,11 +14,6 @@ type DepositCreated struct {
 	service service.IncreaseBalanceService
 }
 
-type depositCreatedEventBody struct {
-	Account string  `json:"account"`
-	Amount  float32 `json:"amount"`
-}
-
 func NewHandlerDepositCreated(s service.IncreaseBalanceService) DepositCreated {
 	return DepositCreated{s}
 }

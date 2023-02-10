@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE `transactions`
 (
     `id`         INT auto_increment NOT NULL,
@@ -8,3 +10,9 @@ CREATE TABLE `transactions`
     `date`       timestamp    NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (`id`)
 );
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE `transactions`
+-- +goose StatementEnd

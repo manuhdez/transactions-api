@@ -10,6 +10,7 @@ services:
       - .env
     environment:
       APP_PORT: "8081"
+      GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(accounts_db)/${MYSQL_DATABASE}?parseTime=true"
     ports:
       - "8081:8081"
     restart: always
@@ -27,6 +28,7 @@ services:
       - .env
     environment:
       APP_PORT: "8082"
+      GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(transactions_db)/${MYSQL_DATABASE}?parseTime=true"
     ports:
       - "8082:8082"
     restart: always
@@ -54,7 +56,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./sql/transactions/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - transactions_data:/var/lib/mysql
     ports:
       - "${MYSQL_PORT_TRANSACTIONS}:3306"

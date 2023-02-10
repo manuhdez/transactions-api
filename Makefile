@@ -3,7 +3,7 @@ build:
 	@echo "🛠 Building containers"
 	@docker-compose build --no-cache
 
-up: build
+up:
 	@echo "▶️  Running application"
 	@docker-compose up -d
 
@@ -66,3 +66,27 @@ lint-accounts:
 
 lint-transactions:
 	@cd internal/transactions && go vet ./... && cd -
+
+# Database migrations
+#
+.PHONY: goose
+goose:
+	GOOSE_DRIVER=mysql goose mysql $(db) $(cmd)
+
+goose-transactions:
+	make goose db="%user:%password@tcp(%transactions_db)/%transactions-api" cmd=$(cmd)
+
+migration:
+	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" $(cmd)
+
+migrate: migrate-transactions migrate-accounts
+
+migrate-accounts:
+	@echo "Running accounts service migrations 🚀" && \
+	make migration service=accounts cmd=up
+migrate-transactions:
+	@echo "Running transactions service migrations 🚀" && \
+	make migration service=transactions cmd=up
+
+migration-create:
+	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" create $(name) sql

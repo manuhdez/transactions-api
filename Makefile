@@ -53,19 +53,19 @@ tidy-transactions:
 test: test-accounts test-transactions
 
 test-accounts:
-	@cd internal/accounts && go test ./... && cd -
+	@go test ./internal/accounts/...
 
 test-transactions:
-	@cd internal/transactions && go test ./... && cd -
+	@go test ./internal/transactions/...
 
 # Code linting
 lint: lint-accounts lint-transactions
 
 lint-accounts:
-	@cd internal/accounts && go vet ./... && cd -
+	@go vet ./internal/accounts/...
 
 lint-transactions:
-	@cd internal/transactions && go vet ./... && cd -
+	@go vet ./internal/transactions/...
 
 # Database migrations
 #

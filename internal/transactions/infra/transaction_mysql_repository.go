@@ -17,23 +17,12 @@ func NewTransactionMysqlRepository(db *sql.DB) TransactionMysqlRepository {
 	return TransactionMysqlRepository{db: db}
 }
 
-func (r TransactionMysqlRepository) Deposit(ctx context.Context, transaction transaction.Transaction) error {
-	_, err := r.db.ExecContext(
-		ctx,
-		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES (?, ?, ?, ?, ?)",
-		transaction.AccountId,
-		transaction.Amount,
-		transaction.Type,
-		transaction.Amount,
-		time.Now(),
-	)
+func (r TransactionMysqlRepository) Deposit(ctx context.Context, deposit transaction.Transaction) error {
+    return r.saveTransaction(ctx, deposit)
+}
 
-	if err != nil {
-		log.Printf("Error saving deposit: %e", err)
-		return err
-	}
-
-	return nil
+func (r TransactionMysqlRepository) Withdraw(ctx context.Context, withdraw transaction.Transaction) error {
+    return r.saveTransaction(ctx, withdraw)
 }
 
 func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
@@ -58,4 +47,23 @@ func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.
 	}
 
 	return transactions, nil
+}
+
+func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trans transaction.Transaction) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES (?, ?, ?, ?, ?)",
+		trans.AccountId,
+		trans.Amount,
+		trans.Type,
+		trans.Amount,
+		time.Now(),
+	)
+
+	if err != nil {
+		log.Printf("Error saving %s transaction: %e", trans.Type, err)
+		return err
+	}
+
+	return nil
 }

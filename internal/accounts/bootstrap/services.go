@@ -11,4 +11,5 @@ var InitServices = wire.NewSet(
 	service.NewFindAccountService,
 	service.NewDeleteAccountService,
 	service.NewIncreaseBalanceService,
+	service.NewDecreaseBalanceService,
 )

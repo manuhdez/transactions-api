@@ -15,6 +15,7 @@ type Server struct {
 func InitServer(
 	eventBus event.Bus,
 	depositCreatedHandler handler.DepositCreated,
+	withdrawCreatedHandler handler.WithdrawCreated,
 	status controllers.StatusController,
 	findAll controllers.FindAllAccountsController,
 	create controllers.CreateAccountController,
@@ -29,6 +30,7 @@ func InitServer(
 	engine.DELETE("/accounts/:id", deleteAccount.Handle)
 
 	eventBus.Subscribe(handler.DepositCreatedType, depositCreatedHandler)
+	eventBus.Subscribe(handler.WithdrawCreatedType, withdrawCreatedHandler)
 
 	return Server{Engine: engine, EventBus: eventBus}
 }

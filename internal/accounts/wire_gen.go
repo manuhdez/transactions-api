@@ -22,6 +22,8 @@ func InitServer() bootstrap.Server {
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	increaseBalanceService := service.NewIncreaseBalanceService(accountMysqlRepository)
 	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
+	decreaseBalance := service.NewDecreaseBalanceService(accountMysqlRepository)
+	withdrawCreated := handler.NewWithdrawCreated(decreaseBalance)
 	statusController := controllers.NewStatusController()
 	findAllService := service.NewFindAllService(accountMysqlRepository)
 	findAllAccountsController := controllers.NewFindAllAccountsControllers(findAllService)
@@ -31,6 +33,6 @@ func InitServer() bootstrap.Server {
 	findAccountController := controllers.NewFindAccountController(findAccountService)
 	deleteAccountService := service.NewDeleteAccountService(accountMysqlRepository)
 	deleteAccountController := controllers.NewDeleteAccountController(deleteAccountService)
-	server := bootstrap.InitServer(eventBus, depositCreated, statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
+	server := bootstrap.InitServer(eventBus, depositCreated, withdrawCreated, statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
 	return server
 }

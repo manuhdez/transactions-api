@@ -28,6 +28,8 @@ func InitServer() di.Server {
 	depositController := controllers.NewDepositController(deposit)
 	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
 	findAllTransactionsController := controllers.NewFindAllController(findAllTransactions)
-	server := di.NewServer(eventBus, accountCreated, statusController, depositController, findAllTransactionsController)
+	withdraw := service.NewWithdrawService(transactionMysqlRepository, eventBus)
+	withdrawController := controllers.NewWithdrawController(withdraw)
+	server := di.NewServer(eventBus, accountCreated, statusController, depositController, findAllTransactionsController, withdrawController)
 	return server
 }

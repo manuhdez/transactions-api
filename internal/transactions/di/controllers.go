@@ -5,4 +5,9 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 )
 
-var InitControllers = wire.NewSet(controllers.NewStatusController, controllers.NewDepositController, controllers.NewFindAllController)
+var InitControllers = wire.NewSet(
+	controllers.NewStatusController,
+	controllers.NewDepositController,
+	controllers.NewFindAllController,
+	controllers.NewWithdrawController,
+)

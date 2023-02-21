@@ -5,6 +5,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/middleware"
 )
 
 type Server struct {
@@ -23,6 +24,10 @@ func InitServer(
 	deleteAccount controllers.DeleteAccountController,
 ) Server {
 	engine := gin.Default()
+
+	// Register global middleware
+	engine.Use(middleware.CORSMiddleware())
+
 	engine.GET("/status", status.Handle)
 	engine.GET("/accounts", findAll.Handle)
 	engine.POST("/accounts", create.Handle)

@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ type testSuite struct {
 	req        *http.Request
 	ctx        *gin.Context
 	repository *mocks.AccountMockRepository
-	controller FindAccountController
+	controller FindAccount
 }
 
 func (s *testSuite) SetupTest() {

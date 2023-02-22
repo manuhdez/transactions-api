@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -7,15 +7,15 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 )
 
-type DeleteAccountController struct {
+type DeleteAccount struct {
 	service service.DeleteAccountService
 }
 
-func NewDeleteAccountController(s service.DeleteAccountService) DeleteAccountController {
-	return DeleteAccountController{s}
+func NewDeleteAccount(s service.DeleteAccountService) DeleteAccount {
+	return DeleteAccount{s}
 }
 
-func (c DeleteAccountController) Handle(ctx *gin.Context) {
+func (c DeleteAccount) Handle(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	err := c.service.Delete(ctx, id)

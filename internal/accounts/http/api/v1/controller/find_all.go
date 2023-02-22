@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -8,15 +8,15 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
-type FindAllAccountsController struct {
+type FindAllAccounts struct {
 	service service.FindAllService
 }
 
-func NewFindAllAccountsControllers(s service.FindAllService) FindAllAccountsController {
-	return FindAllAccountsController{s}
+func NewFindAllAccounts(s service.FindAllService) FindAllAccounts {
+	return FindAllAccounts{s}
 }
 
-func (c FindAllAccountsController) Handle(ctx *gin.Context) {
+func (c FindAllAccounts) Handle(ctx *gin.Context) {
 	accounts, err := c.service.Find(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

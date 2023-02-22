@@ -1,6 +1,7 @@
-package controllers
+package controller
 
 import (
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,21 +9,16 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
 
-type createAccountRequest struct {
-	Id      string  `json:"id"`
-	Balance float32 `json:"balance"`
-}
-
-type CreateAccountController struct {
+type CreateAccount struct {
 	service service.CreateService
 }
 
-func NewCreateAccountController(s service.CreateService) CreateAccountController {
-	return CreateAccountController{s}
+func NewCreateAccount(s service.CreateService) CreateAccount {
+	return CreateAccount{s}
 }
 
-func (c CreateAccountController) Handle(ctx *gin.Context) {
-	var req createAccountRequest
+func (c CreateAccount) Handle(ctx *gin.Context) {
+	var req request.CreateAccount
 	err := ctx.BindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -9,15 +9,15 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
-type FindAccountController struct {
+type FindAccount struct {
 	service service.FindAccountService
 }
 
-func NewFindAccountController(s service.FindAccountService) FindAccountController {
-	return FindAccountController{s}
+func NewFindAccountController(s service.FindAccountService) FindAccount {
+	return FindAccount{s}
 }
 
-func (c FindAccountController) Handle(ctx *gin.Context) {
+func (c FindAccount) Handle(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	acc, err := c.service.Find(ctx, id)

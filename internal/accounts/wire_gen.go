@@ -10,7 +10,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
-	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
@@ -22,14 +22,14 @@ func InitServer() bootstrap.Server {
 	db := bootstrap.InitializeDB()
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	findAllService := service.NewFindAllService(accountMysqlRepository)
-	findAllAccountsController := controllers.NewFindAllAccountsControllers(findAllService)
+	findAllAccounts := controller.NewFindAllAccounts(findAllService)
 	createService := service.NewCreateService(accountMysqlRepository, eventBus)
-	createAccountController := controllers.NewCreateAccountController(createService)
+	createAccount := controller.NewCreateAccount(createService)
 	findAccountService := service.NewFindAccountService(accountMysqlRepository)
-	findAccountController := controllers.NewFindAccountController(findAccountService)
+	findAccount := controller.NewFindAccountController(findAccountService)
 	deleteAccountService := service.NewDeleteAccountService(accountMysqlRepository)
-	deleteAccountController := controllers.NewDeleteAccountController(deleteAccountService)
-	routerRouter := router.NewRouter(findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
+	deleteAccount := controller.NewDeleteAccount(deleteAccountService)
+	routerRouter := router.NewRouter(findAllAccounts, createAccount, findAccount, deleteAccount)
 	increaseBalanceService := service.NewIncreaseBalanceService(accountMysqlRepository)
 	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
 	decreaseBalance := service.NewDecreaseBalanceService(accountMysqlRepository)

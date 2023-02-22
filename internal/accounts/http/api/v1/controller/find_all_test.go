@@ -1,8 +1,8 @@
-package controllers
+package controller
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,19 +34,24 @@ func TestFindAllController(t *testing.T) {
 		repo.On("FindAll", mock.Anything).Return(accounts, nil)
 
 		s := service.NewFindAllService(repo)
-		NewFindAllAccountsControllers(s).Handle(ctx)
+		NewFindAllAccounts(s).Handle(ctx)
 
 		response := w.Result()
 		assert.Equal(t, http.StatusOK, response.StatusCode)
 
-		defer response.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+
+			}
+		}(response.Body)
 
 		// Transform account models into json account models and marshal them to get a json string
 		acc := infra.NewJsonAccountList(accounts)
 		expected, err := json.Marshal(acc)
 		require.NoError(t, err)
 
-		body, err := ioutil.ReadAll(response.Body)
+		body, err := io.ReadAll(response.Body)
 		require.NoError(t, err)
 		assert.JSONEq(t, string(expected), string(body))
 	})

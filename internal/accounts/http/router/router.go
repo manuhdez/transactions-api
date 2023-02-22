@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/middleware"
 	"net/http"
 )
@@ -12,10 +12,10 @@ type Router struct {
 }
 
 func NewRouter(
-	findAllAccounts controllers.FindAllAccountsController,
-	createAccount controllers.CreateAccountController,
-	findAccount controllers.FindAccountController,
-	deleteAccount controllers.DeleteAccountController,
+	findAllAccounts controller.FindAllAccounts,
+	createAccount controller.CreateAccount,
+	findAccount controller.FindAccount,
+	deleteAccount controller.DeleteAccount,
 ) Router {
 	router := gin.Default()
 

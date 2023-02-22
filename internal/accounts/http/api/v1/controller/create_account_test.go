@@ -1,7 +1,8 @@
-package controllers
+package controller
 
 import (
 	"bytes"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,11 +17,11 @@ import (
 
 type CreateAccountTestSuite struct {
 	suite.Suite
-	Account    createAccountRequest
+	Account    request.CreateAccount
 	Request    *http.Request
 	BadRequest *http.Request
 	Service    service.CreateService
-	Controller CreateAccountController
+	Controller CreateAccount
 }
 
 func (s *CreateAccountTestSuite) SetupTest() {
@@ -35,7 +36,7 @@ func (s *CreateAccountTestSuite) SetupTest() {
 	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
 	s.Service = service.NewCreateService(repository, bus)
-	s.Controller = NewCreateAccountController(s.Service)
+	s.Controller = NewCreateAccount(s.Service)
 }
 
 func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {

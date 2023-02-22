@@ -19,10 +19,10 @@ type WithdrawTestSuite struct {
 	service    Withdraw
 }
 
-func (suite *WithdrawTestSuite) SetupTest() {
-	suite.repository = new(mocks.TransactionMockRepository)
-	suite.Bus = new(mocks.EventBus)
-	suite.service = NewWithdrawService(suite.repository, suite.Bus)
+func (s *WithdrawTestSuite) SetupTest() {
+	s.repository = new(mocks.TransactionMockRepository)
+	s.Bus = new(mocks.EventBus)
+	s.service = NewWithdrawService(s.repository, s.Bus)
 }
 
 func (s *WithdrawTestSuite) TestShouldCreateNewTransaction() {
@@ -34,14 +34,14 @@ func (s *WithdrawTestSuite) TestShouldCreateNewTransaction() {
 }
 
 func (s *WithdrawTestSuite) TestCreateWithdrawError() {
-    expected := errors.New("Could not create the withdraw")
+	expected := errors.New("could not create the withdraw")
 	s.repository.On("Withdraw", context.TODO(), mock.Anything).Return(expected)
-    withdraw := transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR")
+	withdraw := transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR")
 
-    res := s.service.Invoke(context.Background(), withdraw)
-    if assert.Error(s.T(), res) {
-        assert.Equal(s.T(), expected, res)
-    }
+	res := s.service.Invoke(context.Background(), withdraw)
+	if assert.Error(s.T(), res) {
+		assert.Equal(s.T(), expected, res)
+	}
 }
 
 func TestWithdrawService(t *testing.T) {

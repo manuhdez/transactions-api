@@ -30,11 +30,11 @@ func (w Withdraw) Invoke(ctx context.Context, withdraw transaction.Transaction) 
 	}
 
 	go func() {
-		err := w.bus.Publish(ctx, event.NewWithdrawCreated(withdraw.AccountId, withdraw.Amount))
+		err = w.bus.Publish(ctx, event.NewWithdrawCreated(withdraw.AccountId, withdraw.Amount))
 		if err != nil {
 			log.Println("error publishing withdraw created event: ", err)
 		}
 	}()
 
-	return nil
+	return err
 }

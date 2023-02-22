@@ -9,4 +9,5 @@ var InitControllers = wire.NewSet(
 	controller.NewDeposit,
 	controller.NewWithdraw,
 	controller.NewFindAllTransactions,
+	controller.NewFindAccountTransactions,
 )

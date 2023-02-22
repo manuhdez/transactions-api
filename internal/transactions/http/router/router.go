@@ -16,6 +16,7 @@ func NewRouter(
 	depositController controller.Deposit,
 	withdrawController controller.Withdraw,
 	findAllTransactionsController controller.FindAllTransactions,
+	findAccountTransactions controller.FindAccountTransactions,
 ) Router {
 	router := gin.Default()
 
@@ -28,6 +29,7 @@ func NewRouter(
 			v1.POST("/deposit", depositController.Handle)
 			v1.POST("/withdraw", withdrawController.Handle)
 			v1.GET("/transactions", findAllTransactionsController.Handle)
+			v1.GET("/transactions/:id", findAccountTransactions.Handle)
 		}
 	}
 

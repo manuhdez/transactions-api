@@ -11,6 +11,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
 	"github.com/manuhdez/transactions-api/internal/accounts/controllers"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
@@ -20,11 +21,6 @@ func InitServer() bootstrap.Server {
 	eventBus := infra.NewEventBus()
 	db := bootstrap.InitializeDB()
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
-	increaseBalanceService := service.NewIncreaseBalanceService(accountMysqlRepository)
-	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
-	decreaseBalance := service.NewDecreaseBalanceService(accountMysqlRepository)
-	withdrawCreated := handler.NewWithdrawCreated(decreaseBalance)
-	statusController := controllers.NewStatusController()
 	findAllService := service.NewFindAllService(accountMysqlRepository)
 	findAllAccountsController := controllers.NewFindAllAccountsControllers(findAllService)
 	createService := service.NewCreateService(accountMysqlRepository, eventBus)
@@ -33,6 +29,11 @@ func InitServer() bootstrap.Server {
 	findAccountController := controllers.NewFindAccountController(findAccountService)
 	deleteAccountService := service.NewDeleteAccountService(accountMysqlRepository)
 	deleteAccountController := controllers.NewDeleteAccountController(deleteAccountService)
-	server := bootstrap.InitServer(eventBus, depositCreated, withdrawCreated, statusController, findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
+	routerRouter := router.NewRouter(findAllAccountsController, createAccountController, findAccountController, deleteAccountController)
+	increaseBalanceService := service.NewIncreaseBalanceService(accountMysqlRepository)
+	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
+	decreaseBalance := service.NewDecreaseBalanceService(accountMysqlRepository)
+	withdrawCreated := handler.NewWithdrawCreated(decreaseBalance)
+	server := bootstrap.InitServer(eventBus, routerRouter, depositCreated, withdrawCreated)
 	return server
 }

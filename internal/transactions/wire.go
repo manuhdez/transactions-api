@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
 )
 
 func InitServer() di.Server {
@@ -16,6 +17,7 @@ func InitServer() di.Server {
 		di.InitServices,
 		di.InitHandlers,
 		di.InitControllers,
+		router.NewRouter,
 		di.NewServer,
 	)
 

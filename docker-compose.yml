@@ -7,10 +7,11 @@ services:
     volumes:
       - ./internal:/internal
     env_file:
+      - internal/accounts/.env
       - .env
     environment:
       APP_PORT: "8081"
-      GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(accounts_db)/${MYSQL_DATABASE}?parseTime=true"
+      # GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(accounts_db)/${MYSQL_DATABASE}?parseTime=true"
     ports:
       - "8081:8081"
     restart: always
@@ -25,10 +26,11 @@ services:
     volumes:
       - ./internal:/internal
     env_file:
+      - internal/transactions/.env
       - .env
     environment:
       APP_PORT: "8082"
-      GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(transactions_db)/${MYSQL_DATABASE}?parseTime=true"
+      # GOOSE_DBSTRING: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(transactions_db)/${MYSQL_DATABASE}?parseTime=true"
     ports:
       - "8082:8082"
     restart: always
@@ -46,7 +48,7 @@ services:
       - ./sql/accounts/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - accounts_data:/var/lib/mysql
     ports:
-      - "3306:${MYSQL_PORT_ACCOUNTS}"
+      - "3306:3306"
     restart: unless-stopped
 
  # Database for transactions service
@@ -58,7 +60,7 @@ services:
     volumes:
       - transactions_data:/var/lib/mysql
     ports:
-      - "${MYSQL_PORT_TRANSACTIONS}:3306"
+      - "3307:3306"
     restart: unless-stopped
 
   rabbit:

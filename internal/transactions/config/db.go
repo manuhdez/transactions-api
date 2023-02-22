@@ -16,10 +16,10 @@ type DBConfig struct {
 
 func NewDBConfig() DBConfig {
 	conf := DBConfig{
-		Host:     os.Getenv("MYSQL_HOST_TRANSACTIONS"),
-		User:     os.Getenv("MYSQL_USER"),
-		Password: os.Getenv("MYSQL_PASSWORD"),
-		Database: os.Getenv("MYSQL_DATABASE"),
+		Host:     os.Getenv("DB_HOST"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Database: os.Getenv("DB_DATABASE"),
 	}
 
 	// check if config has zero value

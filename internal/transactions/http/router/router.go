@@ -1,8 +1,9 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 )
 
@@ -10,16 +11,15 @@ type Router struct {
 	Engine *gin.Engine
 }
 
-// NewRouter Router initialiser for dependency injection. Returns a gin.Engine instance.
+// NewRouter initializes a new router for dependency injection, returning a gin.Engine instance.
 func NewRouter(
-	statusController controllers.StatusController,
 	depositController controller.Deposit,
-	withdrawController controllers.WithdrawController,
-	findAllTransactionsController controllers.FindAllTransactionsController,
+	withdrawController controller.Withdraw,
+	findAllTransactionsController controller.FindAllTransactions,
 ) Router {
 	router := gin.Default()
 
-	router.GET("/status", statusController.Handle)
+	router.GET("/status", statusHandler)
 
 	api := router.Group("/api")
 	{
@@ -32,4 +32,13 @@ func NewRouter(
 	}
 
 	return Router{router}
+}
+
+func statusHandler(ctx *gin.Context) {
+	type statusResponse struct {
+		Status  string `json:"status"`
+		Service string `json:"service"`
+	}
+
+	ctx.JSON(http.StatusOK, statusResponse{"ok", "transactions"})
 }

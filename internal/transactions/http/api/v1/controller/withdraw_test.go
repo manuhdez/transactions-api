@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"bytes"
@@ -13,12 +13,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 )
 
 type withDrawSuite struct {
 	suite.Suite
-	controller WithdrawController
+	controller Withdraw
 	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
 }
@@ -31,7 +32,7 @@ func (s *withDrawSuite) SetupTest() {
 	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
 	srv := service.NewWithdrawService(repository, bus)
-	s.controller = NewWithdrawController(srv)
+	s.controller = NewWithdraw(srv)
 	s.recorder = httptest.NewRecorder()
 
 	ctx, _ := gin.CreateTestContext(s.recorder)
@@ -39,7 +40,7 @@ func (s *withDrawSuite) SetupTest() {
 }
 
 func (s *withDrawSuite) TestWithdrawController_Success() {
-	body, err := json.Marshal(WithdrawRequest{Account: "112", Amount: 125, Currency: "EUR"})
+	body, err := json.Marshal(request.Withdraw{Account: "112", Amount: 125, Currency: "EUR"})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
@@ -51,7 +52,7 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 }
 
 func (s *withDrawSuite) TestWithdrawController_BadRequest() {
-	body, err := json.Marshal(WithdrawRequest{Account: "112", Amount: 125})
+	body, err := json.Marshal(request.Withdraw{Account: "112", Amount: 125})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}

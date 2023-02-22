@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ import (
 type testSuite struct {
 	suite.Suite
 	repository *mocks.TransactionMockRepository
-	controller FindAllTransactionsController
+	controller FindAllTransactions
 	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
 }
@@ -25,7 +25,7 @@ type testSuite struct {
 func (s *testSuite) SetupTest() {
 	s.repository = new(mocks.TransactionMockRepository)
 
-	s.controller = NewFindAllController(service.NewFindAllTransactionsService(s.repository))
+	s.controller = NewFindAllTransactions(service.NewFindAllTransactionsService(s.repository))
 	s.recorder = httptest.NewRecorder()
 
 	ctx, _ := gin.CreateTestContext(s.recorder)

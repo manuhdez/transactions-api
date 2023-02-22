@@ -9,7 +9,6 @@ package main
 import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
-	"github.com/manuhdez/transactions-api/internal/transactions/controllers"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
@@ -20,16 +19,15 @@ import (
 
 func InitServer() di.Server {
 	eventBus := infra.NewEventBus()
-	statusController := controllers.NewStatusController()
 	db := di.NewDBConnection()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	controllerDeposit := controller.NewDeposit(deposit)
 	withdraw := service.NewWithdrawService(transactionMysqlRepository, eventBus)
-	withdrawController := controllers.NewWithdrawController(withdraw)
+	controllerWithdraw := controller.NewWithdraw(withdraw)
 	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
-	findAllTransactionsController := controllers.NewFindAllController(findAllTransactions)
-	routerRouter := router.NewRouter(statusController, controllerDeposit, withdrawController, findAllTransactionsController)
+	controllerFindAllTransactions := controller.NewFindAllTransactions(findAllTransactions)
+	routerRouter := router.NewRouter(controllerDeposit, controllerWithdraw, controllerFindAllTransactions)
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	createAccount := service.NewCreateAccountService(accountMysqlRepository)
 	accountCreated := handler.NewAccountCreated(createAccount)

@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"net/http"
@@ -7,15 +7,15 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 )
 
-type FindAllTransactionsController struct {
+type FindAllTransactions struct {
 	service service.FindAllTransactions
 }
 
-func NewFindAllController(s service.FindAllTransactions) FindAllTransactionsController {
-	return FindAllTransactionsController{s}
+func NewFindAllTransactions(s service.FindAllTransactions) FindAllTransactions {
+	return FindAllTransactions{s}
 }
 
-func (c FindAllTransactionsController) Handle(ctx *gin.Context) {
+func (c FindAllTransactions) Handle(ctx *gin.Context) {
 	transactions, err := c.service.Invoke(ctx)
 
 	if err != nil {

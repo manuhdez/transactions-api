@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,6 @@ func NewDeposit(s service.Deposit) Deposit {
 }
 
 func (c Deposit) Handle(ctx *gin.Context) {
-	fmt.Println("new controller got hit 🎉")
 	var req request.Deposit
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -1,4 +1,4 @@
-package controllers
+package controller_test
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -18,7 +20,7 @@ type Suite struct {
 	suite.Suite
 	repository *mocks.TransactionMockRepository
 	bus        *mocks.EventBus
-	controller DepositController
+	controller controller.Deposit
 	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
 }
@@ -30,7 +32,7 @@ func (s *Suite) SetupTest() {
 	s.bus = new(mocks.EventBus)
 	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
-	s.controller = NewDepositController(service.NewDepositService(s.repository, s.bus))
+	s.controller = controller.NewDeposit(service.NewDepositService(s.repository, s.bus))
 	s.recorder = httptest.NewRecorder()
 
 	ctx, _ := gin.CreateTestContext(s.recorder)
@@ -38,7 +40,7 @@ func (s *Suite) SetupTest() {
 }
 
 func (s *Suite) TestDepositController_Success() {
-	body, err := json.Marshal(DepositRequest{Account: "333", Amount: 100, Currency: "EUR"})
+	body, err := json.Marshal(request.Deposit{Account: "333", Amount: 100, Currency: "EUR"})
 	if err != nil {
 		s.Fail("Error marshaling json")
 	}
@@ -55,7 +57,7 @@ func (s *Suite) TestDepositController_Success() {
 }
 
 func (s *Suite) TestDepositController_MissingAccount() {
-	body, err := json.Marshal(DepositRequest{Amount: 32, Currency: "EUR"})
+	body, err := json.Marshal(request.Deposit{Amount: 32, Currency: "EUR"})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
@@ -69,7 +71,7 @@ func (s *Suite) TestDepositController_MissingAccount() {
 }
 
 func (s *Suite) TestDepositController_MissingAmount() {
-	body, err := json.Marshal(DepositRequest{Account: "112", Currency: "EUR"})
+	body, err := json.Marshal(request.Deposit{Account: "112", Currency: "EUR"})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
@@ -83,7 +85,7 @@ func (s *Suite) TestDepositController_MissingAmount() {
 }
 
 func (s *Suite) TestDepositController_MissingCurrency() {
-	body, err := json.Marshal(DepositRequest{Account: "123", Amount: 32})
+	body, err := json.Marshal(request.Deposit{Account: "123", Amount: 32})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}

@@ -1,30 +1,26 @@
-package controllers
+package controller
 
 import (
 	"context"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"net/http"
+
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 
 	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 )
 
-type WithdrawController struct {
+type Withdraw struct {
 	service service.Withdraw
 }
 
-func NewWithdrawController(s service.Withdraw) WithdrawController {
-	return WithdrawController{s}
+func NewWithdraw(s service.Withdraw) Withdraw {
+	return Withdraw{s}
 }
 
-type WithdrawRequest struct {
-	Account  string  `json:"account" binding:"required"`
-	Amount   float32 `json:"amount" binding:"required"`
-	Currency string  `json:"currency" binding:"required"`
-}
-
-func (c WithdrawController) Handle(ctx *gin.Context) {
-	var req WithdrawRequest
+func (c Withdraw) Handle(ctx *gin.Context) {
+	var req request.Withdraw
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing params"})
 	}

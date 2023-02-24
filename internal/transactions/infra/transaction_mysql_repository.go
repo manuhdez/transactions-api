@@ -52,6 +52,7 @@ func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.
 func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string) ([]transaction.Transaction, error) {
 	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions WHERE account_id LIKE ?", id)
 	if err != nil {
+		log.Printf("Query failed: %e", err)
 		return []transaction.Transaction{}, err
 	}
 
@@ -60,13 +61,15 @@ func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string
 	var tt []transaction.Transaction
 	for rows.Next() {
 		var t TransactionMysql
-		if err := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, t.Date); err != nil {
+		if err := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date); err != nil {
+			log.Printf("Failed to scan transaction row: %e", err)
 			return []transaction.Transaction{}, err
 		}
 		tt = append(tt, t.ToDomainModel())
 	}
 
 	if err = rows.Err(); err != nil {
+		log.Printf("Error scanning rows: %e", err)
 		return []transaction.Transaction{}, err
 	}
 

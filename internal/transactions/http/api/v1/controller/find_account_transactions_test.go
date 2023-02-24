@@ -2,17 +2,18 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/manuhdez/transactions-api/internal/transactions/infra"
-	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
+	"github.com/manuhdez/transactions-api/internal/transactions/infra"
+	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func setup(body io.Reader) (*httptest.ResponseRecorder, *gin.Context, *mocks.TransactionMockRepository) {

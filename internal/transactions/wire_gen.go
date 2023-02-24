@@ -27,7 +27,7 @@ func InitServer() di.Server {
 	controllerWithdraw := controller.NewWithdraw(withdraw)
 	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
 	controllerFindAllTransactions := controller.NewFindAllTransactions(findAllTransactions)
-	findAccountTransactions := controller.NewFindAccountTransactions()
+	findAccountTransactions := controller.NewFindAccountTransactions(transactionMysqlRepository)
 	routerRouter := router.NewRouter(controllerDeposit, controllerWithdraw, controllerFindAllTransactions, findAccountTransactions)
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	createAccount := service.NewCreateAccountService(accountMysqlRepository)

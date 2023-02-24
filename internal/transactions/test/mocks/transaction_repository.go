@@ -25,3 +25,8 @@ func (m *TransactionMockRepository) FindAll(ctx context.Context) ([]transaction.
 	args := m.Called(ctx)
 	return args.Get(0).([]transaction.Transaction), args.Error(1)
 }
+
+func (m *TransactionMockRepository) FindByAccount(ctx context.Context, id string) ([]transaction.Transaction, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).([]transaction.Transaction), args.Error(1)
+}

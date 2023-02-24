@@ -18,11 +18,11 @@ func NewTransactionMysqlRepository(db *sql.DB) TransactionMysqlRepository {
 }
 
 func (r TransactionMysqlRepository) Deposit(ctx context.Context, deposit transaction.Transaction) error {
-    return r.saveTransaction(ctx, deposit)
+	return r.saveTransaction(ctx, deposit)
 }
 
 func (r TransactionMysqlRepository) Withdraw(ctx context.Context, withdraw transaction.Transaction) error {
-    return r.saveTransaction(ctx, withdraw)
+	return r.saveTransaction(ctx, withdraw)
 }
 
 func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
@@ -47,6 +47,30 @@ func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.
 	}
 
 	return transactions, nil
+}
+
+func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string) ([]transaction.Transaction, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions WHERE account_id LIKE ?", id)
+	if err != nil {
+		return []transaction.Transaction{}, err
+	}
+
+	defer rows.Close()
+
+	var tt []transaction.Transaction
+	for rows.Next() {
+		var t TransactionMysql
+		if err := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, t.Date); err != nil {
+			return []transaction.Transaction{}, err
+		}
+		tt = append(tt, t.ToDomainModel())
+	}
+
+	if err = rows.Err(); err != nil {
+		return []transaction.Transaction{}, err
+	}
+
+	return tt, nil
 }
 
 func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trans transaction.Transaction) error {

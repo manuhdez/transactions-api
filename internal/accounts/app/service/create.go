@@ -24,7 +24,7 @@ func (s CreateService) Create(a account.Account) error {
 	}
 
 	go func() {
-		err := s.bus.Publish(context.Background(), event.NewAccountCreated(a.Id(), a.Balance()))
+		err := s.bus.Publish(context.Background(), event.NewAccountCreated(a.Id(), a.Balance(), a.Currency()))
 		if err != nil {
 			log.Println("error publishing account created event:", err)
 		}

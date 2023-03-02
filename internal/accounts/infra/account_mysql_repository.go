@@ -16,7 +16,7 @@ func NewAccountMysqlRepository(db *sql.DB) AccountMysqlRepository {
 }
 
 func (r AccountMysqlRepository) Create(a account.Account) error {
-	_, err := r.db.Exec("INSERT INTO accounts (id, balance) VALUES (?, ?)", a.Id(), a.Balance())
+	_, err := r.db.Exec("INSERT INTO accounts (id, balance, currency) VALUES (?, ?, ?)", a.Id(), a.Balance(), a.Currency())
 	return err
 }
 
@@ -31,7 +31,7 @@ func (r AccountMysqlRepository) FindAll(ctx context.Context) ([]account.Account,
 	var accounts []AccountMysql
 	for rows.Next() {
 		var acc AccountMysql
-		if err = rows.Scan(&acc.Id, &acc.Balance); err != nil {
+		if err = rows.Scan(&acc.Id, &acc.Balance, &acc.Currency); err != nil {
 			return nil, err
 		}
 		accounts = append(accounts, acc)
@@ -47,7 +47,7 @@ func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Ac
 	row := r.db.QueryRowContext(ctx, "select * from accounts where id=?", id)
 
 	var a AccountMysql
-	err := row.Scan(&a.Id, &a.Balance)
+	err := row.Scan(&a.Id, &a.Balance, &a.Currency)
 
 	// this check was necessary to avoid nil pointer error
 	// TODO: solve nil pointer error and remove this check

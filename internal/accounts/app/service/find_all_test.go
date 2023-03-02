@@ -37,8 +37,8 @@ func (s *FindAllSuite) TestWithEmptyListOfAccounts() {
 
 func (s *FindAllSuite) TestWithAListOfAccounts() {
 	expected := []account.Account{
-		account.New("1", 10),
-		account.New("2", 23.95),
+		account.New("1", 10, "EUR"),
+		account.New("2", 23.95, "EUR"),
 	}
 	s.repository.On("FindAll", mock.Anything).Return(expected, nil)
 

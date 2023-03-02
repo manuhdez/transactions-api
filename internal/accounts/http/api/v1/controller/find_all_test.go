@@ -25,9 +25,9 @@ func TestFindAllController(t *testing.T) {
 
 	t.Run("returns a list of accounts", func(t *testing.T) {
 		accounts := []account.Account{
-			account.New("asd", 0),
-			account.New("qwe", 23),
-			account.New("zxc", 12.5),
+			account.New("asd", 0, "EUR"),
+			account.New("qwe", 23, "GBP"),
+			account.New("zxc", 12.5, "USD"),
 		}
 
 		repo := new(mocks.AccountMockRepository)

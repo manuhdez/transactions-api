@@ -36,7 +36,7 @@ func (s *testSuite) SetupTest() {
 }
 
 func (s *testSuite) TestWithExistingAccount() {
-	expected := account.New("123", 33)
+	expected := account.New("123", 33, "EUR")
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(expected, nil)
 	s.controller.Handle(s.ctx)
 

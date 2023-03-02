@@ -1,8 +1,10 @@
 package controller
 
 import (
-	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
+	"log"
 	"net/http"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 
 	"github.com/gin-gonic/gin"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
@@ -25,9 +27,10 @@ func (c CreateAccount) Handle(ctx *gin.Context) {
 		return
 	}
 
-	acc := account.New(req.Id, req.Balance)
+	acc := account.New(req.Id, req.Balance, req.Currency)
 	err = c.service.Create(acc)
 	if err != nil {
+		log.Printf("Error creating account: %e", err)
 		ctx.Status(http.StatusBadRequest)
 		return
 	}

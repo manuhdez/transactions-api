@@ -22,7 +22,7 @@ type CreateServiceTestSuite struct {
 func (suite *CreateServiceTestSuite) SetupTest() {
 	suite.Repository = new(mocks.AccountMockRepository)
 	suite.Bus = new(mocks.EventBus)
-	suite.Account = account.New("123", 0)
+	suite.Account = account.New("123", 0, "EUR")
 }
 
 func (suite *CreateServiceTestSuite) TestShouldCreateAccount() {

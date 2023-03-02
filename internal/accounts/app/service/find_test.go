@@ -25,7 +25,7 @@ func (s *testSuite) SetupTest() {
 }
 
 func (s *testSuite) TestWithMatchingAccount() {
-	expected := account.New("123", 32)
+	expected := account.New("123", 32, "EUR")
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(expected, nil)
 
 	result, err := s.service.Find(context.Background(), "123")

@@ -52,7 +52,7 @@ func TestFindAccountTransactions(t *testing.T) {
 	t.Run("returns a list of transactions for the given account", func(t *testing.T) {
 		rec, ctx, repo := setup(nil)
 		repo.On("FindByAccount", mock.Anything, mock.Anything).Return([]transaction.Transaction{
-			{AccountId: "1", Type: transaction.Withdrawal, Amount: 112.5, Currency: "EUR"},
+			{AccountId: "1", Type: transaction.Withdrawal, Amount: 112.5},
 		}, nil)
 
 		findAccountsController := NewFindAccountTransactions(repo)
@@ -60,7 +60,7 @@ func TestFindAccountTransactions(t *testing.T) {
 
 		got := getJsonBody(t, rec.Body)
 		want := response{[]infra.JsonTransaction{
-			{Account: "1", Type: string(transaction.Withdrawal), Amount: 112.5, Currency: "EUR"},
+			{Account: "1", Type: string(transaction.Withdrawal), Amount: 112.5},
 		}}
 		assert.Equal(t, want, got)
 	})

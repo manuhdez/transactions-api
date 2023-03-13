@@ -2,6 +2,7 @@ package di
 
 import (
 	"github.com/google/wire"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"

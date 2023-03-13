@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
 type Suite struct {

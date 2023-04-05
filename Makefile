@@ -41,13 +41,16 @@ deps-transactions:
 # go commands
 #
 # Deps
-tidy: tidy-accounts tidy-transactions
+tidy: tidy-accounts tidy-transactions tidy-users
 
 tidy-accounts:
 	@cd internal/accounts && go mod tidy && cd -
 
 tidy-transactions:
 	@cd internal/transactions && go mod tidy && cd -
+
+tidy-users:
+	@cd internal/users && go mod tidy && cd -
 
 # Testing
 test: test-accounts test-transactions
@@ -79,7 +82,7 @@ goose-transactions:
 migration:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" $(cmd)
 
-migrate: migrate-transactions migrate-accounts
+migrate: migrate-transactions migrate-accounts migrate-users
 
 migrate-accounts:
 	@echo "Running accounts service migrations 🚀" && \
@@ -87,6 +90,9 @@ migrate-accounts:
 migrate-transactions:
 	@echo "Running transactions service migrations 🚀" && \
 	make migration service=transactions cmd=up
+migrate-users:
+	@echo "Running users service migrations 🚀" && \
+	make migration service=users cmd=up
 
 migration-create:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" create $(name) sql

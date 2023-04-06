@@ -38,6 +38,12 @@ deps-transactions:
 	cd - && \
 	make tidy-transactions
 
+deps-users:
+	@cd internal/users && \
+	wire && \
+	cd - && \
+	make tidy-users
+
 # go commands
 #
 # Deps

@@ -1,4 +1,4 @@
-package di
+package container
 
 import (
 	"github.com/gin-gonic/gin"
@@ -51,21 +51,21 @@ var Router = wire.NewSet(
 	router.NewRouter,
 )
 
-type Server struct {
-	Engine   *gin.Engine
+type App struct {
+	Server   *gin.Engine
 	EventBus event.Bus
 }
 
-func NewServer(
-	eventBus event.Bus,
+func NewApp(
 	router router.Router,
+	eventBus event.Bus,
 	accountCreatedHandler handler.AccountCreated,
-) Server {
+) App {
 	// Register event handlers
 	eventBus.Subscribe(event.AccountCreatedType, accountCreatedHandler)
 
-	return Server{
-		Engine:   router.Engine,
+	return App{
+		Server:   router.Engine,
 		EventBus: eventBus,
 	}
 }

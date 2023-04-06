@@ -10,7 +10,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/config"
-	"github.com/manuhdez/transactions-api/internal/transactions/di"
+	"github.com/manuhdez/transactions-api/internal/transactions/container"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"
@@ -18,10 +18,10 @@ import (
 
 // Injectors from wire.go:
 
-func NewServer() di.Server {
-	eventBus := infra.NewEventBus()
+func NewApp() container.App {
 	db := config.NewDBConnection()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
+	eventBus := infra.NewEventBus()
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	controllerDeposit := controller.NewDeposit(deposit)
 	withdraw := service.NewWithdrawService(transactionMysqlRepository, eventBus)
@@ -33,6 +33,6 @@ func NewServer() di.Server {
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	createAccount := service.NewCreateAccountService(accountMysqlRepository)
 	accountCreated := handler.NewAccountCreated(createAccount)
-	server := di.NewServer(eventBus, routerRouter, accountCreated)
-	return server
+	app := container.NewApp(routerRouter, eventBus, accountCreated)
+	return app
 }

@@ -9,7 +9,8 @@ package main
 import (
 	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
-	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
+	"github.com/manuhdez/transactions-api/internal/accounts/config"
+	"github.com/manuhdez/transactions-api/internal/accounts/container"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
@@ -17,12 +18,12 @@ import (
 
 // Injectors from wire.go:
 
-func InitServer() bootstrap.Server {
-	eventBus := infra.NewEventBus()
-	db := bootstrap.InitializeDB()
+func NewApp() container.App {
+	db := config.NewDBConnection()
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	findAllService := service.NewFindAllService(accountMysqlRepository)
 	findAllAccounts := controller.NewFindAllAccounts(findAllService)
+	eventBus := infra.NewEventBus()
 	createService := service.NewCreateService(accountMysqlRepository, eventBus)
 	createAccount := controller.NewCreateAccount(createService)
 	findAccountService := service.NewFindAccountService(accountMysqlRepository)
@@ -34,6 +35,6 @@ func InitServer() bootstrap.Server {
 	depositCreated := handler.NewHandlerDepositCreated(increaseBalanceService)
 	decreaseBalance := service.NewDecreaseBalanceService(accountMysqlRepository)
 	withdrawCreated := handler.NewWithdrawCreated(decreaseBalance)
-	server := bootstrap.InitServer(eventBus, routerRouter, depositCreated, withdrawCreated)
-	return server
+	app := container.NewApp(routerRouter, eventBus, depositCreated, withdrawCreated)
+	return app
 }

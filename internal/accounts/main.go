@@ -8,12 +8,12 @@ import (
 
 func main() {
 	port := os.Getenv("APP_PORT")
-	server := InitServer()
+	app := NewApp()
 
-	go server.EventBus.Listen()
+	go app.EventBus.Listen()
 
 	fmt.Printf("Transactions service running on port %s\n", port)
-	err := server.Engine.Run(fmt.Sprintf(":%s", port))
+	err := app.Server.Engine.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
 		log.Fatalf("Server crashed: %e", err)
 	}

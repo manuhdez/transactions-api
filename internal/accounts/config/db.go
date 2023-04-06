@@ -32,8 +32,12 @@ func getDBConfig() DBConfig {
 	return conf
 }
 
-func DBConnect() (*sql.DB, error) {
+func NewDBConnection() *sql.DB {
 	c := getDBConfig()
 	dbUri := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", c.User, c.Password, c.Host, c.Database)
-	return sql.Open("mysql", dbUri)
+	db, err := sql.Open("mysql", dbUri)
+	if err != nil {
+		panic(err)
+	}
+	return db
 }

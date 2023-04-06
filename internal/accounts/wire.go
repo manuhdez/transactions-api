@@ -5,19 +5,20 @@ package main
 
 import (
 	"github.com/google/wire"
-	"github.com/manuhdez/transactions-api/internal/accounts/bootstrap"
-	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
+	"github.com/manuhdez/transactions-api/internal/accounts/container"
 )
 
-func InitServer() bootstrap.Server {
+func NewApp() container.App {
 	wire.Build(
-		bootstrap.InitializeRepositories,
-		bootstrap.InitBuses,
-		bootstrap.InitServices,
-		bootstrap.InitHandlers,
-		bootstrap.InitControllers,
-		router.NewRouter,
-		bootstrap.InitServer,
+		container.Databases,
+		container.Repositories,
+		container.Services,
+		container.Controllers,
+		container.Router,
+		container.Buses,
+		container.EventHandlers,
+		container.NewApp,
 	)
-	return bootstrap.Server{}
+
+	return container.App{}
 }

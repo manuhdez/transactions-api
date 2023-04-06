@@ -8,7 +8,7 @@ import (
 
 func main() {
 	port := os.Getenv("APP_PORT")
-	server := InitServer()
+	server := NewServer()
 
 	go server.EventBus.Listen()
 

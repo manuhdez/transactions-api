@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/config"
 	"github.com/manuhdez/transactions-api/internal/transactions/di"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
@@ -17,9 +18,9 @@ import (
 
 // Injectors from wire.go:
 
-func InitServer() di.Server {
+func NewServer() di.Server {
 	eventBus := infra.NewEventBus()
-	db := di.NewDBConnection()
+	db := config.NewDBConnection()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	controllerDeposit := controller.NewDeposit(deposit)

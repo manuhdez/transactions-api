@@ -24,7 +24,7 @@ status:
 
 # dependencies
 # generate dependency tree
-deps: deps-accounts deps-transactions
+deps: deps-accounts deps-transactions deps-users
 
 deps-accounts: 
 	@cd internal/accounts && \

@@ -56,6 +56,21 @@ func TestRegisterUser_Handle(t *testing.T) {
 			t.Errorf("Http Status: got %d want %d", got, want)
 		}
 	})
+
+	t.Run("returns the newly created user json", func(t *testing.T) {
+		reqData := getValidRequest(t)
+		req := httptest.NewRequest(http.MethodPost, "/", reqData)
+		recorder := httptest.NewRecorder()
+		ctrl.Handle(recorder, req)
+
+		body, _ := io.ReadAll(recorder.Body)
+
+		got := string(body)
+		want := `{"id":"123-456","first_name":"Ramon","last_name":"Perez","email":"ramon@perez.com"}`
+		if got != want {
+			t.Errorf("Http Status: got %s want %s", got, want)
+		}
+	})
 }
 
 func getValidRequest(t *testing.T) io.Reader {

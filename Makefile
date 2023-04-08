@@ -59,13 +59,16 @@ tidy-users:
 	@cd internal/users && go mod tidy && cd -
 
 # Testing
-test: test-accounts test-transactions
+test: test-accounts test-transactions test-users
 
 test-accounts:
 	@go test ./internal/accounts/...
 
 test-transactions:
 	@go test ./internal/transactions/...
+
+test-users:
+	@go test ./internal/users/...
 
 # Code linting
 lint: lint-accounts lint-transactions

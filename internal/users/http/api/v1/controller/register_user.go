@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
@@ -20,16 +19,17 @@ func NewRegisterUserController(s service.RegisterUser) RegisterUser {
 }
 
 func (ct RegisterUser) Handle(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
+	var req request.RegisterUser
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var req request.RegisterUser
-	err = json.Unmarshal(body, &req)
-	if err != nil {
+	req.Validate()
+	if errs := len(req.Errors); errs > 0 {
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(req.ErrorResponse()))
 		return
 	}
 
@@ -39,10 +39,10 @@ func (ct RegisterUser) Handle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("Could not register user. Please try again."))
 		return
+	} else {
+		w.WriteHeader(http.StatusCreated)
 	}
 
-	jsonUser := infra.NewUserJson(newUser)
-	jsonStr, _ := jsonUser.ToJson()
-	w.WriteHeader(http.StatusCreated)
-	_, _ = w.Write(jsonStr)
+	jsonUser, _ := infra.NewUserJson(newUser).ToJson()
+	_, _ = w.Write(jsonUser)
 }

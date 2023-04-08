@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 )
@@ -16,7 +15,6 @@ func NewRegisterUserService(repository user.Repository) RegisterUser {
 }
 
 func (srv RegisterUser) Register(user user.User) error {
-	fmt.Printf("Registering user with data: %v\n", user)
 	ctx := context.Background()
 	return srv.repository.Save(ctx, user)
 }

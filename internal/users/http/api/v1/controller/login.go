@@ -6,21 +6,26 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/request"
+	"github.com/manuhdez/transactions-api/internal/users/infra"
 )
 
 type Login struct {
-	service service.LoginService
+	loginService service.LoginService
+	tokenService infra.TokenService
 }
 
-func NewLoginController(s service.LoginService) Login {
-	return Login{s}
+func NewLoginController(login service.LoginService, token infra.TokenService) Login {
+	return Login{
+		loginService: login,
+		tokenService: token,
+	}
 }
 
 type LoginResponse struct {
-	Success    bool   `json:"success"`
-	UserId     string `json:"id"`
-	Token      string `json:"token"`
-	Expiration string `json:"expiration"`
+	Success bool   `json:"success"`
+	UserId  string `json:"id"`
+	Token   string `json:"token"`
+	// Expiration string `json:"expiration"`
 }
 
 func (ctlr Login) Handle(w http.ResponseWriter, r *http.Request) {
@@ -38,16 +43,25 @@ func (ctlr Login) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ctlr.service.Login(req.Email, req.Password)
+	user, err := ctlr.loginService.Login(req.Email, req.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
-	response := LoginResponse{true, user.Id, "", ""}
-	res, err := json.Marshal(response)
+	token, err := ctlr.tokenService.CreateToken(user.Id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("There was an error creating your session please try again."))
+		return
+	}
 
+	res, _ := json.Marshal(LoginResponse{
+		Success: true,
+		UserId:  user.Id,
+		Token:   token,
+	})
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(res)
 }

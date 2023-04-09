@@ -30,6 +30,7 @@ var Repositories = wire.NewSet(
 var Services = wire.NewSet(
 	service.NewRegisterUserService,
 	service.NewLoginService,
+	infra.NewTokenService,
 )
 
 var Controllers = wire.NewSet(

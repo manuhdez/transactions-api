@@ -28,3 +28,16 @@ func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
 	}
 	return err
 }
+
+func (repo UserMysqlRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
+	row := repo.db.QueryRowContext(ctx, "select * from users where email = ?", email)
+
+	var u UserMysql
+	err := row.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
+	if err != nil {
+		log.Printf("unable to scan row into user variable: %e", err)
+		return user.User{}, err
+	}
+
+	return user.New(u.Id, u.FirstName, u.LastName, u.Email, u.Password), nil
+}

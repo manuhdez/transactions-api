@@ -14,10 +14,12 @@ type Router struct {
 
 func NewRouter(
 	registerUser controller.RegisterUser,
+	loginUser controller.Login,
 ) Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/health-check", healthCheckController).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/auth/signup", registerUser.Handle).Methods(http.MethodPost)
+	router.HandleFunc("/api/v1/auth/login", loginUser.Handle).Methods(http.MethodPost)
 
 	return Router{Engine: router}
 }

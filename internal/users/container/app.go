@@ -29,10 +29,12 @@ var Repositories = wire.NewSet(
 
 var Services = wire.NewSet(
 	service.NewRegisterUserService,
+	service.NewLoginService,
 )
 
 var Controllers = wire.NewSet(
 	controller.NewRegisterUserController,
+	controller.NewLoginController,
 )
 
 var Router = wire.NewSet(api.NewRouter)

@@ -22,7 +22,9 @@ func Init() container.App {
 	userMysqlRepository := infra.NewUserMysqlRepository(db)
 	registerUser := service.NewRegisterUserService(userMysqlRepository)
 	controllerRegisterUser := controller.NewRegisterUserController(registerUser)
-	router := api.NewRouter(controllerRegisterUser)
+	loginService := service.NewLoginService(userMysqlRepository)
+	login := controller.NewLoginController(loginService)
+	router := api.NewRouter(controllerRegisterUser, login)
 	app := container.NewApp(router)
 	return app
 }

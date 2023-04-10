@@ -14,3 +14,7 @@ type UserMockRepository struct {
 func (repo UserMockRepository) Save(_ context.Context, _ user.User) error {
 	return repo.Err
 }
+
+func (repo UserMockRepository) FindByEmail(_ context.Context, email string) (user.User, error) {
+	return user.User{Id: "1", Email: email, Password: "test-password"}, repo.Err
+}

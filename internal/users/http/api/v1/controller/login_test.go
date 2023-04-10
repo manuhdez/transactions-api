@@ -21,28 +21,24 @@ type testCase struct {
 	response controller.LoginResponse
 }
 
-type mockTokenService struct{}
-
-func (m mockTokenService) CreateToken(_ string) (string, error) {
-	return "mock-token", nil
-}
-
-func (m mockTokenService) ValidateToken(_ string) bool {
-	return false
-}
-
 func TestLogin_Handle(t *testing.T) {
 	repo := mocks.UserMockRepository{Err: nil}
 	loginService := service.NewLoginService(repo)
-	tokenService := mockTokenService{}
+	tokenService := mocks.NewTokenService("mock-token")
 	ctrl := controller.NewLoginController(loginService, tokenService)
 
 	for _, tt := range []testCase{
 		{
 			name:     "with valid credentials",
 			request:  request.Login{Email: "test@mail.com", Password: "test-password"},
-			status:   200,
+			status:   http.StatusOK,
 			response: controller.LoginResponse{Success: true, UserId: "1", Token: "mock-token"},
+		},
+		{
+			name:     "with wrong credentials",
+			request:  request.Login{Email: "test@mail.com", Password: "wrong-password"},
+			status:   http.StatusBadRequest,
+			response: controller.LoginResponse{Success: false},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

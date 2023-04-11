@@ -23,7 +23,7 @@ func Init() container.App {
 	bcryptHashService := infra.NewBcryptService()
 	registerUser := service.NewRegisterUserService(userMysqlRepository, bcryptHashService)
 	controllerRegisterUser := controller.NewRegisterUserController(registerUser)
-	loginService := service.NewLoginService(userMysqlRepository)
+	loginService := service.NewLoginService(userMysqlRepository, bcryptHashService)
 	jwtService := infra.NewJWTService()
 	login := controller.NewLoginController(loginService, jwtService)
 	router := api.NewRouter(controllerRegisterUser, login)

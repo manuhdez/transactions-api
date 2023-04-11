@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/manuhdez/transactions-api/internal/users/domain/service"
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 )
 
 type LoginService struct {
 	repository user.Repository
+	hasher     service.HashService
 }
 
-func NewLoginService(repo user.Repository) LoginService {
-	return LoginService{repo}
+func NewLoginService(repo user.Repository, hasher service.HashService) LoginService {
+	return LoginService{repo, hasher}
 }
 
 func (srv LoginService) Login(email, password string) (*user.User, error) {
@@ -21,7 +23,8 @@ func (srv LoginService) Login(email, password string) (*user.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid authentication data")
 	}
-	if usr.Password != password {
+
+	if err = srv.hasher.Compare(usr.Password, password); err != nil {
 		return nil, fmt.Errorf("invalid authentication data")
 	}
 

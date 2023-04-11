@@ -12,6 +12,7 @@ func Init() container.App {
 	wire.Build(
 		container.Databases,
 		container.Repositories,
+		container.DomainServices,
 		container.Services,
 		container.Controllers,
 		container.Router,

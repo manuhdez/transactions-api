@@ -20,7 +20,8 @@ import (
 func Init() container.App {
 	db := config.NewDBConnection()
 	userMysqlRepository := infra.NewUserMysqlRepository(db)
-	registerUser := service.NewRegisterUserService(userMysqlRepository)
+	bcryptHashService := infra.NewBcryptService()
+	registerUser := service.NewRegisterUserService(userMysqlRepository, bcryptHashService)
 	controllerRegisterUser := controller.NewRegisterUserController(registerUser)
 	loginService := service.NewLoginService(userMysqlRepository)
 	jwtService := infra.NewJWTService()

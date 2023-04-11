@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/config"
+	domainservice "github.com/manuhdez/transactions-api/internal/users/domain/service"
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 	"github.com/manuhdez/transactions-api/internal/users/http/api"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
@@ -25,6 +26,11 @@ var Databases = wire.NewSet(
 var Repositories = wire.NewSet(
 	wire.Bind(new(user.Repository), new(infra.UserMysqlRepository)),
 	infra.NewUserMysqlRepository,
+)
+
+var DomainServices = wire.NewSet(
+	wire.Bind(new(domainservice.HashService), new(infra.BcryptHashService)),
+	infra.NewBcryptService,
 )
 
 var Services = wire.NewSet(

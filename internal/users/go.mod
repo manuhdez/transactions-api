@@ -7,4 +7,5 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.0
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )

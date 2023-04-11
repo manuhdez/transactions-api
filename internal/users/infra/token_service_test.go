@@ -47,13 +47,24 @@ func TestJWTService_ValidateToken(t *testing.T) {
 	t.Setenv("JWT_SECRET", tokenSecret)
 	service := infra.NewJWTService()
 
-	tokenStr, err := service.CreateToken("test-user-id")
+	invalidToken := "this-is-an-invalid-token"
+	validToken, err := service.CreateToken("test-user-id")
 	if err != nil {
 		t.Fatalf("error generating a test token: %e", err)
 	}
 
-	got := service.ValidateToken(tokenStr)
-	if got != true {
-		t.Errorf("Validate(token): got %v, want %v", got, true)
-	}
+	t.Run("with a valid token", func(t *testing.T) {
+		got := service.ValidateToken(validToken)
+		if got != true {
+			t.Errorf("Validate(token): got %v, want %v", got, true)
+		}
+	})
+
+	t.Run("with an invalid token", func(t *testing.T) {
+		got := service.ValidateToken(invalidToken)
+		if got != false {
+			t.Errorf("Validate(token): got %v, want %v", got, false)
+		}
+	})
+
 }

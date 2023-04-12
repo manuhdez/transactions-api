@@ -11,12 +11,14 @@ import (
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/request"
+	"github.com/manuhdez/transactions-api/internal/users/infra"
 	"github.com/manuhdez/transactions-api/internal/users/test/mocks"
 )
 
 func TestRegisterUser_Handle(t *testing.T) {
 	repo := mocks.UserMockRepository{Err: nil}
-	serv := service.NewRegisterUserService(repo)
+	hasher := infra.NewBcryptService()
+	serv := service.NewRegisterUserService(repo, hasher)
 	ctrl := controller.NewRegisterUserController(serv)
 
 	t.Run("returns status 201", func(t *testing.T) {

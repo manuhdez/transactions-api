@@ -23,7 +23,8 @@ type testCase struct {
 
 func TestLogin_Handle(t *testing.T) {
 	repo := mocks.UserMockRepository{Err: nil}
-	loginService := service.NewLoginService(repo)
+	hasher := mocks.HasherService{HashError: nil}
+	loginService := service.NewLoginService(repo, hasher)
 	tokenService := mocks.NewTokenService("mock-token")
 	ctrl := controller.NewLoginController(loginService, tokenService)
 

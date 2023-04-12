@@ -10,11 +10,13 @@ import (
 
 const TokenDuration = time.Hour * 24
 
+// TokenService - Describes a service that is able to generate json web tokens and validate them
 type TokenService interface {
 	CreateToken(userId string) (string, error)
 	ValidateToken(token string) bool
 }
 
+// JWTService - Implements the TokenService interface making use of the library golang-jwt/jwt/v5
 type JWTService struct {
 	secret     string
 	expiration time.Time

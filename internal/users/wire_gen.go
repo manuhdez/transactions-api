@@ -18,6 +18,7 @@ import (
 // Injectors from wire.go:
 
 func Init() container.App {
+	healthCheck := controller.NewHealthCheck()
 	db := config.NewDBConnection()
 	userMysqlRepository := infra.NewUserMysqlRepository(db)
 	bcryptHashService := infra.NewBcryptService()
@@ -26,7 +27,7 @@ func Init() container.App {
 	loginService := service.NewLoginService(userMysqlRepository, bcryptHashService)
 	jwtService := infra.NewJWTService()
 	login := controller.NewLoginController(loginService, jwtService)
-	router := api.NewRouter(controllerRegisterUser, login)
+	router := api.NewRouter(healthCheck, controllerRegisterUser, login)
 	app := container.NewApp(router)
 	return app
 }

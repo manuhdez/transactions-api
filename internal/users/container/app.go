@@ -41,6 +41,7 @@ var Services = wire.NewSet(
 )
 
 var Controllers = wire.NewSet(
+	controller.NewHealthCheck,
 	controller.NewRegisterUserController,
 	controller.NewLoginController,
 )

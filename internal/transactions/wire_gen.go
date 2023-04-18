@@ -21,7 +21,10 @@ import (
 func NewApp() container.App {
 	db := config.NewDBConnection()
 	transactionMysqlRepository := infra.NewTransactionMysqlRepository(db)
-	eventBus := infra.NewEventBus()
+	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
+	createAccount := service.NewCreateAccountService(accountMysqlRepository)
+	accountCreated := handler.NewAccountCreated(createAccount)
+	eventBus := infra.NewEventBus(accountCreated)
 	deposit := service.NewDepositService(transactionMysqlRepository, eventBus)
 	controllerDeposit := controller.NewDeposit(deposit)
 	withdraw := service.NewWithdrawService(transactionMysqlRepository, eventBus)
@@ -30,9 +33,6 @@ func NewApp() container.App {
 	controllerFindAllTransactions := controller.NewFindAllTransactions(findAllTransactions)
 	findAccountTransactions := controller.NewFindAccountTransactions(transactionMysqlRepository)
 	routerRouter := router.NewRouter(controllerDeposit, controllerWithdraw, controllerFindAllTransactions, findAccountTransactions)
-	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
-	createAccount := service.NewCreateAccountService(accountMysqlRepository)
-	accountCreated := handler.NewAccountCreated(createAccount)
-	app := container.NewApp(routerRouter, eventBus, accountCreated)
+	app := container.NewApp(routerRouter, eventBus)
 	return app
 }

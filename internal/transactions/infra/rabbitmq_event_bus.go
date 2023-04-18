@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/config"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/streadway/amqp"
@@ -27,7 +28,9 @@ func NewAmqpConnection() (*amqp.Connection, error) {
 	return amqp.Dial(uri)
 }
 
-func NewEventBus() EventBus {
+func NewEventBus(
+	accountCreated handler.AccountCreated,
+) EventBus {
 	con, err := NewAmqpConnection()
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %s", err)
@@ -54,7 +57,18 @@ func NewEventBus() EventBus {
 		log.Fatalf("Failed to bind queue `%s` to the exchange `%s`: %e", queueName, exchangeName, err)
 	}
 
-	return EventBus{con, make(map[event.Type]event.Handler)}
+	return EventBus{
+		connection: con,
+		handlers:   RegisterHandlers(accountCreated),
+	}
+}
+
+func RegisterHandlers(handlers ...event.Handler) map[event.Type]event.Handler {
+	h := make(map[event.Type]event.Handler)
+	for _, handler := range handlers {
+		h[handler.Type()] = handler
+	}
+	return h
 }
 
 func (b EventBus) Publish(_ context.Context, event event.Event) error {

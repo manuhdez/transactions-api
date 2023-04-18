@@ -25,5 +25,6 @@ var (
 )
 
 type Handler interface {
+	Type() Type
 	Handle(ctx context.Context, event Event) error
 }

@@ -38,13 +38,13 @@ var Controllers = wire.NewSet(
 	controller.NewFindAccountTransactions,
 )
 
+var EventHandlers = wire.NewSet(
+	handler.NewAccountCreated,
+)
+
 var Buses = wire.NewSet(
 	wire.Bind(new(event.Bus), new(infra.EventBus)),
 	infra.NewEventBus,
-)
-
-var EventHandlers = wire.NewSet(
-	handler.NewAccountCreated,
 )
 
 var Router = wire.NewSet(
@@ -56,14 +56,7 @@ type App struct {
 	EventBus event.Bus
 }
 
-func NewApp(
-	router router.Router,
-	eventBus event.Bus,
-	accountCreatedHandler handler.AccountCreated,
-) App {
-	// Register event handlers
-	eventBus.Subscribe(event.AccountCreatedType, accountCreatedHandler)
-
+func NewApp(router router.Router, eventBus event.Bus) App {
 	return App{
 		Server:   router.Engine,
 		EventBus: eventBus,

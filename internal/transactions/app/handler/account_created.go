@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
@@ -10,7 +11,8 @@ import (
 )
 
 type AccountCreated struct {
-	service service.CreateAccount
+	eventType event.Type
+	service   service.CreateAccount
 }
 
 type accountCreatedBody struct {
@@ -18,7 +20,14 @@ type accountCreatedBody struct {
 }
 
 func NewAccountCreated(s service.CreateAccount) AccountCreated {
-	return AccountCreated{s}
+	return AccountCreated{
+		eventType: event.AccountCreatedType,
+		service:   s,
+	}
+}
+
+func (h AccountCreated) Type() event.Type {
+	return h.eventType
 }
 
 func (h AccountCreated) Handle(ctx context.Context, e event.Event) error {

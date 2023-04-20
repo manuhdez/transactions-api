@@ -63,10 +63,10 @@ func NewEventBus(
 	}
 }
 
-func RegisterHandlers(handlers ...event.Handler) map[event.Type]event.Handler {
+func RegisterHandlers(eventHandlers ...event.Handler) map[event.Type]event.Handler {
 	h := make(map[event.Type]event.Handler)
-	for _, handler := range handlers {
-		h[handler.Type()] = handler
+	for _, eventHandler := range eventHandlers {
+		h[eventHandler.Type()] = eventHandler
 	}
 	return h
 }

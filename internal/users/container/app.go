@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/config"
+	"github.com/manuhdez/transactions-api/internal/users/domain/event"
 	domainservice "github.com/manuhdez/transactions-api/internal/users/domain/service"
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 	"github.com/manuhdez/transactions-api/internal/users/http/api"
@@ -12,15 +13,24 @@ import (
 )
 
 type App struct {
-	Server api.Router
+	Server   api.Router
+	EventBus event.Bus
 }
 
-func NewApp(server api.Router) App {
-	return App{Server: server}
+func NewApp(server api.Router, eventBus event.Bus) App {
+	return App{
+		Server:   server,
+		EventBus: eventBus,
+	}
 }
 
 var Databases = wire.NewSet(
 	config.NewDBConnection,
+)
+
+var Buses = wire.NewSet(
+	wire.Bind(new(event.Bus), new(infra.RabbitEventBus)),
+	infra.NewRabbitEventBus,
 )
 
 var Repositories = wire.NewSet(

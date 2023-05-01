@@ -11,6 +11,7 @@ import (
 func Init() container.App {
 	wire.Build(
 		container.Databases,
+		container.Buses,
 		container.Repositories,
 		container.DomainServices,
 		container.Services,

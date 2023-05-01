@@ -28,6 +28,7 @@ func Init() container.App {
 	jwtService := infra.NewJWTService()
 	login := controller.NewLoginController(loginService, jwtService)
 	router := api.NewRouter(healthCheck, controllerRegisterUser, login)
-	app := container.NewApp(router)
+	rabbitEventBus := infra.NewRabbitEventBus()
+	app := container.NewApp(router, rabbitEventBus)
 	return app
 }

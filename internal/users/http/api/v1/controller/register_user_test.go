@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/request"
@@ -18,10 +20,13 @@ import (
 func TestRegisterUser_Handle(t *testing.T) {
 	repo := mocks.UserMockRepository{Err: nil}
 	hasher := infra.NewBcryptService()
-	serv := service.NewRegisterUserService(repo, hasher)
+	bus := new(mocks.Bus)
+	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
+	serv := service.NewRegisterUserService(repo, hasher, bus)
 	ctrl := controller.NewRegisterUserController(serv)
 
 	t.Run("returns status 201", func(t *testing.T) {
+		bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 		reqData := getValidRequest(t)
 		req := httptest.NewRequest(http.MethodPost, "/", reqData)
 		recorder := httptest.NewRecorder()

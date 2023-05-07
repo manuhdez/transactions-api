@@ -16,6 +16,11 @@ const (
 	queueConsumer = "accounts"
 )
 
+var routingKeys = []string{
+	"event.transactions.*",
+	"event.users.*",
+}
+
 type EventBus struct {
 	connection *amqp.Connection
 	handlers   map[event.Type]event.Handler
@@ -43,10 +48,28 @@ func createDefaultQueue(con *amqp.Connection) error {
 		return err
 	}
 
-	routingKey := "event.transactions.*"
-	err = ch.QueueBind(queueName, routingKey, exchangeName, false, nil)
+	err = bindQueues(ch)
 	if err != nil {
-		log.Fatalf("Failed to bind queue `%s` to the exchange `%s`: %e", queueName, exchangeName, err)
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func bindQueues(ch *amqp.Channel) error {
+	var errCount int
+	var e string
+	for _, routingKey := range routingKeys {
+		err := ch.QueueBind(queueName, routingKey, exchangeName, false, nil)
+		if err != nil {
+			e += fmt.Sprintf("Failed to bind queue `%s`: %e\n", queueName, err)
+		} else {
+			log.Printf("Bound queue `%s` to routing key `%s`", queueName, routingKey)
+		}
+	}
+
+	if errCount > 0 {
+		return fmt.Errorf("%s", e)
 	}
 
 	return nil

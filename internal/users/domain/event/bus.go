@@ -16,7 +16,7 @@ type Event interface {
 	Body() []byte
 }
 
-//go:generate mockery --case=snake --outpkg=mocks --output=../../test/mocks --name=Bus
+//go:generate mockery --case=snake --outpkg=mocks --output=test/mocks --name=Bus
 
 type Bus interface {
 	Publish(ctx context.Context, event Event) error

@@ -37,17 +37,20 @@ func (srv RegisterUser) Register(user user.User) error {
 		return err
 	}
 
-	go func() {
-		ev := event.NewUserSignedUp(event.UserSignedUpBody{
-			Id:        user.Id,
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			Email:     user.Email,
-		})
+	go srv.publishEvent(ctx, user)
+	return nil
+}
 
-		err = srv.eventBus.Publish(ctx, ev)
-		if err != nil {
-			log.Println("error publishing user signed up event:", err)
-		}
-	}()
+func (srv RegisterUser) publishEvent(ctx context.Context, user user.User) {
+	ev := event.NewUserSignedUp(event.UserSignedUpBody{
+		Id:        user.Id,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+	})
+
+	err := srv.eventBus.Publish(ctx, ev)
+	if err != nil {
+		log.Println("error publishing user signed up event:", err)
+	}
 }

@@ -22,13 +22,13 @@ func Init() container.App {
 	db := config.NewDBConnection()
 	userMysqlRepository := infra.NewUserMysqlRepository(db)
 	bcryptHashService := infra.NewBcryptService()
-	registerUser := service.NewRegisterUserService(userMysqlRepository, bcryptHashService)
+	rabbitEventBus := infra.NewRabbitEventBus()
+	registerUser := service.NewRegisterUserService(userMysqlRepository, bcryptHashService, rabbitEventBus)
 	controllerRegisterUser := controller.NewRegisterUserController(registerUser)
 	loginService := service.NewLoginService(userMysqlRepository, bcryptHashService)
 	jwtService := infra.NewJWTService()
 	login := controller.NewLoginController(loginService, jwtService)
 	router := api.NewRouter(healthCheck, controllerRegisterUser, login)
-	rabbitEventBus := infra.NewRabbitEventBus()
 	app := container.NewApp(router, rabbitEventBus)
 	return app
 }

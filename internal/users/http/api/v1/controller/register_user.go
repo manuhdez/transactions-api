@@ -26,10 +26,10 @@ func (ct RegisterUser) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Validate()
-	if errs := len(req.Errors); errs > 0 {
+	errors := req.Validate()
+	if errs := len(errors); errs > 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(req.ErrorResponse()))
+		_, _ = w.Write([]byte(req.ErrorResponse(errors)))
 		return
 	}
 

@@ -66,9 +66,9 @@ func TestRegisterUser_Validate(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.req.Validate()
+			errors := tt.req.Validate()
 
-			got := len(tt.req.Errors)
+			got := len(errors)
 			if got != tt.want {
 				t.Errorf("Validate(): got %v want %v", got, tt.want)
 			}

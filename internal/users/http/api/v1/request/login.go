@@ -8,11 +8,13 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-func (l *Login) Validate() {
+func (l *Login) Validate() []error {
+	var errors []error
 	if l.Email == "" {
-		l.Errors = append(l.Errors, fmt.Errorf("field `email` is required"))
+		errors = append(errors, fmt.Errorf("field `email` is required"))
 	}
 	if l.Password == "" {
-		l.Errors = append(l.Errors, fmt.Errorf("field `password` is required"))
+		errors = append(errors, fmt.Errorf("field `password` is required"))
 	}
+	return errors
 }

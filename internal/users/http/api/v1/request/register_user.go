@@ -14,26 +14,29 @@ type RegisterUser struct {
 	Password  string `json:"password"`
 }
 
-func (r *RegisterUser) Validate() {
+func (r *RegisterUser) Validate() []error {
+	var errors []error
 	if r.Id == "" {
-		r.Errors = append(r.Errors, fmt.Errorf("field `id` is required"))
+		errors = append(errors, fmt.Errorf("field `id` is required"))
 	}
 
 	if r.FirstName == "" {
-		r.Errors = append(r.Errors, fmt.Errorf("field `first_name` is required"))
+		errors = append(errors, fmt.Errorf("field `first_name` is required"))
 	}
 
 	if r.LastName == "" {
-		r.Errors = append(r.Errors, fmt.Errorf("field `last_name` is required"))
+		errors = append(errors, fmt.Errorf("field `last_name` is required"))
 	}
 
 	if r.Email == "" {
-		r.Errors = append(r.Errors, fmt.Errorf("field `email` is required"))
+		errors = append(errors, fmt.Errorf("field `email` is required"))
 	} else if strings.Contains(r.Email, "@") == false {
-		r.Errors = append(r.Errors, fmt.Errorf("field `email` does not match the required format"))
+		errors = append(errors, fmt.Errorf("field `email` does not match the required format"))
 	}
 
 	if r.Password == "" {
-		r.Errors = append(r.Errors, fmt.Errorf("field `password` is required"))
+		errors = append(errors, fmt.Errorf("field `password` is required"))
 	}
+
+	return errors
 }

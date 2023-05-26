@@ -36,10 +36,10 @@ func (ctlr Login) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Validate()
-	if len(req.Errors) > 0 {
+	errors := req.Validate()
+	if len(errors) > 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(req.ErrorResponse()))
+		_, _ = w.Write([]byte(req.ErrorResponse(errors)))
 		return
 	}
 

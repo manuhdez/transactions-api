@@ -11,16 +11,17 @@ type testRequest struct {
 	request.Base
 }
 
-func (r *testRequest) Validate() {
-	r.Errors = append(r.Errors, fmt.Errorf("error #1"))
-	r.Errors = append(r.Errors, fmt.Errorf("error #2"))
+func (r *testRequest) Validate() []error {
+	var errors []error
+	errors = append(errors, fmt.Errorf("error #1"))
+	return append(errors, fmt.Errorf("error #2"))
 }
 
 func TestRequest_PrintErrors(t *testing.T) {
 	req := testRequest{}
-	req.Validate()
+	errorsList := req.Validate()
 
-	got := req.ErrorResponse()
+	got := req.ErrorResponse(errorsList)
 	want := `{"errors": ["error #1", "error #2"]}`
 
 	if got != want {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/charmbracelet/log"
 	"github.com/gorilla/mux"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 )
@@ -31,6 +32,6 @@ func NewRouter(
 }
 
 func (r Router) Listen() error {
-	fmt.Printf("Users service running on http://localhost:%s\n", r.port)
+	log.Print("Server running on", "port", r.port)
 	return http.ListenAndServe(fmt.Sprintf(":%s", r.port), r.engine)
 }

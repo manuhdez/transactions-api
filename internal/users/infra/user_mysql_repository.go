@@ -16,6 +16,27 @@ func NewUserMysqlRepository(db *sql.DB) UserMysqlRepository {
 	return UserMysqlRepository{db: db}
 }
 
+func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
+	rows, err := repo.db.QueryContext(ctx, "select * from users")
+	if err != nil {
+		log.Printf("Error querying users: %e", err)
+		return nil, err
+	}
+
+	var users []user.User
+	for rows.Next() {
+		var u UserMysql
+		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
+		if err != nil {
+			log.Printf("Error scanning row: %e", err)
+			return nil, err
+		}
+		users = append(users, u.ToDomainModel())
+	}
+
+	return users, nil
+}
+
 func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
 	_, err := repo.db.ExecContext(
 		ctx,

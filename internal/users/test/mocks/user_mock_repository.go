@@ -11,6 +11,10 @@ type UserMockRepository struct {
 	Err error
 }
 
+func (repo UserMockRepository) All(_ context.Context) ([]user.User, error) {
+	return []user.User{}, repo.Err
+}
+
 func (repo UserMockRepository) Save(_ context.Context, _ user.User) error {
 	return repo.Err
 }

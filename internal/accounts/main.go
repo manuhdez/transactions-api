@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/charmbracelet/log"
 )
 
 func main() {
@@ -12,9 +13,8 @@ func main() {
 
 	go app.EventBus.Listen()
 
-	fmt.Printf("Transactions service running on port %s\n", port)
 	err := app.Server.Engine.Run(fmt.Sprintf(":%s", port))
 	if err != nil {
-		log.Fatalf("Server crashed: %e", err)
+		log.Error("Server crashed with ", "error", err.Error())
 	}
 }

@@ -3,11 +3,12 @@ package infra
 import (
 	"context"
 	"fmt"
-	"log"
+
+	"github.com/charmbracelet/log"
+	"github.com/streadway/amqp"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/config"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
-	"github.com/streadway/amqp"
 )
 
 const (
@@ -21,6 +22,7 @@ var routingKeys = []string{
 	"event.users.*",
 }
 
+// EventBus - is a RabbitMQ implementation of the event bus interface
 type EventBus struct {
 	connection *amqp.Connection
 	handlers   map[event.Type]event.Handler
@@ -56,6 +58,7 @@ func createDefaultQueue(con *amqp.Connection) error {
 	return nil
 }
 
+// bindQueues binds the queue to the exchange with the routing keys
 func bindQueues(ch *amqp.Channel) error {
 	var errCount int
 	var e string
@@ -132,7 +135,7 @@ func (b EventBus) Listen() {
 
 	go b.handleMessages(messages)
 
-	log.Printf("Waiting for messages. To exit press CTRL+C")
+	log.Info("Listening events from RabbitMQ")
 	<-forever
 }
 

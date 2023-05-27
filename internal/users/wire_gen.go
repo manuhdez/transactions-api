@@ -28,7 +28,9 @@ func Init() container.App {
 	loginService := service.NewLoginService(userMysqlRepository, bcryptHashService)
 	jwtService := infra.NewJWTService()
 	login := controller.NewLoginController(loginService, jwtService)
-	router := api.NewRouter(healthCheck, controllerRegisterUser, login)
+	usersRetriever := service.NewUsersRetrieverService(userMysqlRepository)
+	getAllUsers := controller.NewGetAllUsersController(usersRetriever)
+	router := api.NewRouter(healthCheck, controllerRegisterUser, login, getAllUsers)
 	app := container.NewApp(router, rabbitEventBus)
 	return app
 }

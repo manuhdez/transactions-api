@@ -2,6 +2,7 @@ package container
 
 import (
 	"github.com/google/wire"
+
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/config"
 	"github.com/manuhdez/transactions-api/internal/users/domain/event"
@@ -48,12 +49,14 @@ var Services = wire.NewSet(
 	service.NewLoginService,
 	wire.Bind(new(infra.TokenService), new(infra.JWTService)),
 	infra.NewJWTService,
+	service.NewUsersRetrieverService,
 )
 
 var Controllers = wire.NewSet(
 	controller.NewHealthCheck,
 	controller.NewRegisterUserController,
 	controller.NewLoginController,
+	controller.NewGetAllUsersController,
 )
 
 var Router = wire.NewSet(api.NewRouter)

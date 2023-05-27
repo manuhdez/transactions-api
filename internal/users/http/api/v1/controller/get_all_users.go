@@ -19,7 +19,7 @@ func NewGetAllUsersController(retriever service.UsersRetriever) GetAllUsers {
 	}
 }
 
-func (ctlr GetAllUsers) Handle() (w http.ResponseWriter, r *http.Request) {
+func (ctlr GetAllUsers) Handle(w http.ResponseWriter, _ *http.Request) {
 	users, err := ctlr.retriever.Retrieve()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -46,8 +46,8 @@ func (ctlr GetAllUsers) Handle() (w http.ResponseWriter, r *http.Request) {
 
 func getResponseData(users []user.User) []infra.UserJson {
 	var res []infra.UserJson
-	for _, user := range users {
-		res = append(res, infra.NewUserJson(user))
+	for _, u := range users {
+		res = append(res, infra.NewUserJson(u))
 	}
 	return res
 }

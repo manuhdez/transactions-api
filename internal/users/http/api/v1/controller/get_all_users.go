@@ -39,6 +39,7 @@ func (ctlr GetAllUsers) Handle(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(response)
 	return

@@ -1,0 +1,84 @@
+_format_version: "3.0"
+
+services:
+  - name: accounts-service
+    url: http://host.docker.internal:8081
+    routes:
+      - name: health-check-accounts
+        strip_path: true
+        path_handling: v0
+        methods:
+          - GET
+        paths:
+          - /health/accounts
+
+      - name: accounts-path
+        strip_path: false
+        methods: ["GET", "POST"]
+        paths:
+          - /api/v1/accounts
+          - /api/v1/accounts/:id
+
+  - name: transactions-service
+    url: http://host.docker.internal:8082
+    routes:
+      - name: health-check-transactions
+        strip_path: true
+        path_handling: v0
+        methods:
+          - GET
+        paths:
+          - /health/transactions
+
+      - name: transactions-get
+        strip_path: false
+        methods:
+          - GET
+        paths:
+          - /api/v1/transactions
+          - /api/v1/transactions/:id
+
+      - name: transaction-post
+        strip_path: false
+        methods:
+          - POST
+        paths:
+          - /api/v1/deposit
+          - /api/v1/withdraw
+
+  - name: users-service
+    url: http://host.docker.internal:8083
+    routes:
+      - name: health-check-users
+        strip_path: true
+        path_handling: v0
+        methods:
+          - GET
+        paths:
+          - /health/users
+
+      - name: users-get
+        strip_path: false
+        methods:
+          - GET
+        paths:
+          - /api/v1/users
+
+plugins:
+  - name: request-transformer
+    route: health-check-accounts
+    config:
+      replace:
+        uri: "/status"
+
+  - name: request-transformer
+    route: health-check-transactions
+    config:
+      replace:
+        uri: "/status"
+
+  - name: request-transformer
+    route: health-check-users
+    config:
+      replace:
+        uri: "/health-check"

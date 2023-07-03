@@ -17,8 +17,8 @@ type HealthCheckResponse struct {
 }
 
 func (c HealthCheck) Handle(w http.ResponseWriter, _ *http.Request) {
-
 	body, _ := json.Marshal(HealthCheckResponse{Status: "ok", Service: "users"})
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
 }

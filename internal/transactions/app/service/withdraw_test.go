@@ -5,45 +5,48 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
-	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
+
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
+	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 )
 
-type WithdrawTestSuite struct {
-	suite.Suite
-	repository *mocks.TransactionMockRepository
-	Bus        *mocks.EventBus
-	service    Withdraw
-}
+func NewTestSuite() (*mocks.TransactionMockRepository, *mocks.EventBus, Withdraw) {
+	repository := new(mocks.TransactionMockRepository)
+	bus := new(mocks.EventBus)
+	service := NewWithdrawService(repository, bus)
 
-func (s *WithdrawTestSuite) SetupTest() {
-	s.repository = new(mocks.TransactionMockRepository)
-	s.Bus = new(mocks.EventBus)
-	s.service = NewWithdrawService(s.repository, s.Bus)
-}
-
-func (s *WithdrawTestSuite) TestShouldCreateNewTransaction() {
-	s.repository.On("Withdraw", context.TODO(), mock.Anything).Return(nil)
-	withdraw := transaction.NewTransaction(transaction.Withdrawal, "1", 125.5, "EUR")
-
-	res := s.service.Invoke(context.Background(), withdraw)
-	assert.NoError(s.T(), res)
-}
-
-func (s *WithdrawTestSuite) TestCreateWithdrawError() {
-	expected := errors.New("could not create the withdraw")
-	s.repository.On("Withdraw", context.TODO(), mock.Anything).Return(expected)
-	withdraw := transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR")
-
-	res := s.service.Invoke(context.Background(), withdraw)
-	if assert.Error(s.T(), res) {
-		assert.Equal(s.T(), expected, res)
-	}
+	return repository, bus, service
 }
 
 func TestWithdrawService(t *testing.T) {
-	suite.Run(t, new(WithdrawTestSuite))
+
+	t.Run(
+		"Should create a new withdraw", func(t *testing.T) {
+			repository, _, service := NewTestSuite()
+
+			repository.On("Withdraw", context.Background(), mock.Anything).Return(nil)
+			withdraw := transaction.NewTransaction(transaction.Withdrawal, "1", 125.5, "EUR")
+
+			err := service.Invoke(context.Background(), withdraw)
+			assert.NoError(t, err)
+		},
+	)
+
+	t.Run(
+		"Should return an error when creating a new withdraw", func(t *testing.T) {
+			repository, _, service := NewTestSuite()
+
+			expected := errors.New("could not create the withdraw")
+			repository.On("Withdraw", context.Background(), mock.Anything).Return(expected)
+			withdraw := transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR")
+
+			res := service.Invoke(context.Background(), withdraw)
+
+			if assert.Error(t, res) {
+				assert.Equal(t, expected, res)
+			}
+		},
+	)
 }

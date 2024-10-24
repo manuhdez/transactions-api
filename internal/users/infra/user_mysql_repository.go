@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
@@ -38,20 +39,28 @@ func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
 }
 
 func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
+	if err := repo.ping(); err != nil {
+		log.Printf("[UserMysqlRepository:Save]%s", err)
+		return fmt.Errorf("[UserMysqlRepository:Save][err: cannot connect to database]")
+	}
+
 	_, err := repo.db.ExecContext(
 		ctx,
-		"insert into users (id, first_name, last_name, email, password) values (?, ?, ?, ?, ?);",
+		"insert into users (id, first_name, last_name, email, password) values ($1, $2, $3, $4, $5);",
 		u.Id, u.FirstName, u.LastName, u.Email, u.Password,
 	)
 
 	if err != nil {
-		log.Printf("Error saving new user: %e", err)
+		er := fmt.Errorf("[UserMysqlRepository:Save][err: %w]", err)
+		log.Println(er)
+		return err
 	}
-	return err
+
+	return nil
 }
 
 func (repo UserMysqlRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
-	row := repo.db.QueryRowContext(ctx, "select * from users where email = ?", email)
+	row := repo.db.QueryRowContext(ctx, "select * from users where email = $1", email)
 
 	var u UserMysql
 	err := row.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
@@ -61,4 +70,12 @@ func (repo UserMysqlRepository) FindByEmail(ctx context.Context, email string) (
 	}
 
 	return user.New(u.Id, u.FirstName, u.LastName, u.Email, u.Password), nil
+}
+
+func (repo UserMysqlRepository) ping() error {
+	if err := repo.db.Ping(); err != nil {
+		return fmt.Errorf("[ping][err: %w]", err)
+	}
+
+	return nil
 }

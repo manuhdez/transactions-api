@@ -62,6 +62,7 @@ func (ctlr Login) Handle(w http.ResponseWriter, r *http.Request) {
 		UserId:  user.Id,
 		Token:   token,
 	})
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(res)
 }

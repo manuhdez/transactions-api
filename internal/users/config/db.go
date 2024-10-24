@@ -3,9 +3,10 @@ package config
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 type DBConfig struct {
@@ -14,14 +15,17 @@ type DBConfig struct {
 	User     string
 	Password string
 	Database string
+	Schema   string
 }
 
 func loadDBConfig() DBConfig {
 	conf := DBConfig{
 		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 		Database: os.Getenv("DB_DATABASE"),
+		Schema:   os.Getenv("DB_SCHEMA"),
 	}
 
 	// check if config has zero value
@@ -34,10 +38,14 @@ func loadDBConfig() DBConfig {
 
 func NewDBConnection() *sql.DB {
 	c := loadDBConfig()
-	dbUri := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", c.User, c.Password, c.Host, c.Database)
-	db, err := sql.Open("mysql", dbUri)
+	log.Printf("[NewDBConnection][config: %+v]", c)
+	dbUri := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", c.Host, c.Port, c.User, c.Password, c.Database, c.Schema)
+	db, err := sql.Open("postgres", dbUri)
 	if err != nil {
 		panic(err)
+	} else {
+		log.Println("Database successfully connected")
 	}
+
 	return db
 }

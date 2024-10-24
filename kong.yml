@@ -64,6 +64,20 @@ services:
         paths:
           - /api/v1/users
 
+      - name: register-user
+        strip_path: false
+        methods:
+          - POST
+        paths:
+          - /api/v1/auth/signup
+
+      - name: login-user
+        strip_path: false
+        methods:
+          - POST
+        paths:
+          - /api/v1/auth/login
+
 plugins:
   - name: request-transformer
     route: health-check-accounts
@@ -82,3 +96,15 @@ plugins:
     config:
       replace:
         uri: "/health-check"
+
+  - name: request-transformer
+    route: register-user
+    config:
+      replace:
+        uri: /api/v1/auth/signup
+
+  - name: request-transformer
+    route: login-user
+    config:
+      replace:
+        uri: /api/v1/auth/login

@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   accounts:
     build:
@@ -15,8 +14,8 @@ services:
       - "8081:8081"
     restart: always
     depends_on:
-      - accounts_db
       - rabbit
+      - database
 
   transactions:
     build:
@@ -33,8 +32,8 @@ services:
       - "8082:8082"
     restart: always
     depends_on:
-      - transactions_db
       - rabbit
+      - database
 
   users:
     build:
@@ -51,41 +50,21 @@ services:
       - "8083:8083"
     restart: always
     depends_on:
-      - users_db
       - rabbit
+      - database
 
-  accounts_db:
-    image: mysql:8
-    platform: linux/amd64
+  database:
+    image: postgres:14-alpine
     env_file:
-      - internal/accounts/.env
+      - .env
+    shm_size: 128mb
     volumes:
-      - accounts_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
     ports:
-      - "3306:3306"
+      - "5432:5432"
     restart: unless-stopped
 
-  transactions_db:
-    image: mysql:8
-    platform: linux/amd64
-    env_file:
-      - internal/transactions/.env
-    volumes:
-      - transactions_data:/var/lib/mysql
-    ports:
-      - "3307:3306"
-    restart: unless-stopped
-
-  users_db:
-    image: mysql:8
-    platform: linux/amd64
-    env_file:
-      - internal/users/.env
-    volumes:
-      - users_data:/var/lib/mysql
-    ports:
-      - "3308:3306"
-    restart: unless-stopped
 
   rabbit:
     image: rabbitmq:3-management-alpine
@@ -116,8 +95,6 @@ services:
       KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong.yml"
 
 volumes:
-  accounts_data:
-  transactions_data:
-  users_data:
+  db_data:
   rabbit_data:
   rabbit_logs:

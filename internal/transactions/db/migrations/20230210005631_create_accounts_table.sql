@@ -1,13 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE `accounts`
+CREATE TABLE accounts
 (
-    `id`      varchar(100) NOT NULL,
-    PRIMARY KEY (`id`)
+    id      varchar(100) NOT NULL,
+    PRIMARY KEY ("id")
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE `accounts`;
+DROP TABLE accounts;
 -- +goose StatementEnd

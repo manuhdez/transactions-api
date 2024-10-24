@@ -23,6 +23,15 @@ func NewRouter(
 	getAllUsers controller.GetAllUsers,
 ) Router {
 	router := mux.NewRouter()
+	// define a middleware function to log the request method, path and request body
+	loggerMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Printf("%s %s %s", r.Method, r.URL.Path, r.Proto)
+			next.ServeHTTP(w, r)
+		})
+	}
+	// add the middleware to the router
+	router.Use(loggerMiddleware)
 	router.HandleFunc("/health-check", healthCheck.Handle).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/auth/signup", registerUser.Handle).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/auth/login", loginUser.Handle).Methods(http.MethodPost)

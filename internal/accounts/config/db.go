@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 type DBConfig struct {
@@ -14,6 +14,7 @@ type DBConfig struct {
 	User     string
 	Password string
 	Database string
+	Schema   string
 }
 
 func getDBConfig() DBConfig {
@@ -22,6 +23,7 @@ func getDBConfig() DBConfig {
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 		Database: os.Getenv("DB_DATABASE"),
+		Schema:   os.Getenv("DB_SCHEMA"),
 	}
 
 	// check if config has zero value
@@ -34,8 +36,8 @@ func getDBConfig() DBConfig {
 
 func NewDBConnection() *sql.DB {
 	c := getDBConfig()
-	dbUri := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8", c.User, c.Password, c.Host, c.Database)
-	db, err := sql.Open("mysql", dbUri)
+	dbUri := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", c.Host, c.Port, c.User, c.Password, c.Database, c.Schema)
+	db, err := sql.Open("postgres", dbUri)
 	if err != nil {
 		panic(err)
 	}

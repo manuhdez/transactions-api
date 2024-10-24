@@ -33,6 +33,7 @@ func (ct RegisterUser) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	newUser := user.New(req.Id, req.FirstName, req.LastName, req.Email, req.Password)
 	err = ct.service.Register(newUser)
 	if err != nil {

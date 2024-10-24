@@ -1,18 +1,21 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE `transactions`
+CREATE TYPE transaction_type AS ENUM ('deposit', 'withdrawal');
+
+CREATE TABLE transactions
 (
-    `id`         INT auto_increment NOT NULL,
-    `account_id` varchar(100) NOT NULL,
-    `amount`     float        NOT NULL,
-    `balance`    float        NOT NULL,
-    `type`       enum ('deposit', 'withdrawal') NOT NULL,
-    `date`       timestamp    NOT NULL DEFAULT current_timestamp,
-    PRIMARY KEY (`id`)
+    id         SERIAL           NOT NULL,
+    account_id VARCHAR(100)     NOT NULL,
+    amount     NUMERIC          NOT NULL,
+    balance    NUMERIC          NOT NULL,
+    type       transaction_type NOT NULL,
+    date       TIMESTAMP        NOT NULL DEFAULT current_timestamp,
+    PRIMARY KEY (id)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE `transactions`
+DROP TABLE transactions;
+DROP TYPE transaction_type;
 -- +goose StatementEnd

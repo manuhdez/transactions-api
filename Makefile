@@ -79,19 +79,21 @@ lint-accounts:
 lint-transactions:
 	@go vet ./internal/transactions/...
 
-# Database migrations
+# Database commands
 #
-.PHONY: goose
-goose:
-	GOOSE_DRIVER=mysql goose mysql $(db) $(cmd)
 
-goose-transactions:
-	make goose db="%user:%password@tcp(%transactions_db)/%transactions-api" cmd=$(cmd)
+db-status:
+	@echo "Accounts service migrations"
+	@docker exec transactions-api-accounts-1 goose -dir "db/migrations" status
+	@echo "\nTransactions service migrations"
+	@docker exec transactions-api-transactions-1 goose -dir "db/migrations" status
+	@echo "\nUsers service migrations"
+	@docker exec transactions-api-users-1 goose -dir "db/migrations" status
+
+migrate: migrate-transactions migrate-accounts migrate-users
 
 migration:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" $(cmd)
-
-migrate: migrate-transactions migrate-accounts migrate-users
 
 migrate-accounts:
 	@echo "Running accounts service migrations 🚀" && \
@@ -105,3 +107,5 @@ migrate-users:
 
 migration-create:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" create $(name) sql
+
+.PHONY: migration migrate

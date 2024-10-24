@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 )
@@ -36,6 +37,9 @@ func NewRouter(
 	router.HandleFunc("/api/v1/auth/signup", registerUser.Handle).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/auth/login", loginUser.Handle).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/users", getAllUsers.Handle).Methods(http.MethodGet)
+
+	// export prometheus metrics
+	router.HandleFunc("/metrics", promhttp.Handler().ServeHTTP).Methods(http.MethodGet)
 
 	return Router{
 		port:   os.Getenv("APP_PORT"),

@@ -96,15 +96,3 @@ plugins:
     config:
       replace:
         uri: "/health-check"
-
-  - name: request-transformer
-    route: register-user
-    config:
-      replace:
-        uri: /api/v1/auth/signup
-
-  - name: request-transformer
-    route: login-user
-    config:
-      replace:
-        uri: /api/v1/auth/login

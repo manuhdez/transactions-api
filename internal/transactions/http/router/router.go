@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 )
 
@@ -32,6 +34,8 @@ func NewRouter(
 			v1.GET("/transactions/:id", findAccountTransactions.Handle)
 		}
 	}
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	return Router{router}
 }

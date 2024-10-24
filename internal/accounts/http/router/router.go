@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/middleware"
 )
@@ -33,6 +35,8 @@ func NewRouter(
 		v1.GET("/accounts/:id", findAccount.Handle)
 		v1.DELETE("/accounts/:id", deleteAccount.Handle)
 	}
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	return Router{router}
 }

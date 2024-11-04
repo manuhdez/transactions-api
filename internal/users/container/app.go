@@ -4,13 +4,13 @@ import (
 	"github.com/google/wire"
 
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
-	"github.com/manuhdez/transactions-api/internal/users/config"
 	"github.com/manuhdez/transactions-api/internal/users/domain/event"
 	domainservice "github.com/manuhdez/transactions-api/internal/users/domain/service"
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 	"github.com/manuhdez/transactions-api/internal/users/http/api"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/users/infra"
+	"shared/config"
 )
 
 type App struct {
@@ -26,6 +26,7 @@ func NewApp(server api.Router, eventBus event.Bus) App {
 }
 
 var Databases = wire.NewSet(
+	config.NewDBConfig,
 	config.NewDBConnection,
 )
 

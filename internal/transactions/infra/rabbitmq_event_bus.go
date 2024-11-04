@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
-	"github.com/manuhdez/transactions-api/internal/transactions/config"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/streadway/amqp"
+
+	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
+	"shared/config"
 )
 
 const (

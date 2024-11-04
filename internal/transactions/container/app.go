@@ -3,18 +3,20 @@ package container
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
-	"github.com/manuhdez/transactions-api/internal/transactions/config"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"
+	"shared/config"
 )
 
 var Databases = wire.NewSet(
+	config.NewDBConfig,
 	config.NewDBConnection,
 )
 

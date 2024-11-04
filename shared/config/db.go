@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -17,7 +18,7 @@ type DBConfig struct {
 	Schema   string
 }
 
-func newDBConfig() DBConfig {
+func NewDBConfig() DBConfig {
 	conf := DBConfig{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -35,18 +36,20 @@ func newDBConfig() DBConfig {
 	return conf
 }
 
-func NewDBConnection() *sql.DB {
-	c := newDBConfig()
-	dbUri := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", c.Host, c.Port, c.User, c.Password, c.Database, c.Schema)
+func NewDBConnection(c DBConfig) *sql.DB {
+	log.Printf("[NewDBConnection][msg: connecting database %s]", c.Schema)
+
+	dbUri := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s",
+		c.Host, c.Port, c.User, c.Password, c.Database, c.Schema,
+	)
+
 	db, err := sql.Open("postgres", dbUri)
 	if err != nil {
 		panic(err)
+	} else {
+		log.Printf("[NewDBConnection][msg: connected database %s", c.Schema)
 	}
 
-	if pingErr := db.Ping(); pingErr != nil {
-		panic(pingErr)
-	}
-
-	fmt.Println("Database successfully connected")
 	return db
 }

@@ -4,4 +4,5 @@ use (
 	./internal/accounts
 	./internal/transactions
 	./internal/users
+	./shared
 )

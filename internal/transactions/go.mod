@@ -5,7 +5,6 @@ go 1.23
 require (
 	github.com/gin-gonic/gin v1.8.0
 	github.com/google/wire v0.5.0
-	github.com/lib/pq v1.10.9
 	github.com/prometheus/client_golang v1.20.5
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.9.0

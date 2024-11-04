@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/streadway/amqp"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/config"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
+	"shared/config"
 )
 
 const (

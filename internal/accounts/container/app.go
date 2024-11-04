@@ -2,17 +2,19 @@ package container
 
 import (
 	"github.com/google/wire"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/handler"
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
-	"github.com/manuhdez/transactions-api/internal/accounts/config"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
+	"shared/config"
 )
 
 var Databases = wire.NewSet(
+	config.NewDBConfig,
 	config.NewDBConnection,
 )
 

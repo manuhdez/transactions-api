@@ -7,7 +7,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.0
-	github.com/lib/pq v1.10.9
 	github.com/prometheus/client_golang v1.20.5
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.9.0

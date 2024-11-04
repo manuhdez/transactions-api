@@ -12,6 +12,7 @@ type RabbitMQConfig struct {
 	Password string
 }
 
+// NewRabbitMQConfig returns a config object with rabbitmq connection configuration
 func NewRabbitMQConfig() RabbitMQConfig {
 	conf := RabbitMQConfig{
 		Host:     os.Getenv("AMQP_HOST"),

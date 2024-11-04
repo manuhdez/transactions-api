@@ -66,6 +66,7 @@ func bindQueues(ch *amqp.Channel) error {
 		err := ch.QueueBind(queueName, routingKey, exchangeName, false, nil)
 		if err != nil {
 			e += fmt.Sprintf("Failed to bind queue `%s`: %e\n", queueName, err)
+			errCount++
 		} else {
 			log.Printf("Bound queue `%s` to routing key `%s`", queueName, routingKey)
 		}

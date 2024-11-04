@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
+	"github.com/manuhdez/transactions-api/internal/users/infra/metrics"
 )
 
 type UserMysqlRepository struct {
@@ -18,9 +20,12 @@ func NewUserMysqlRepository(db *sql.DB) UserMysqlRepository {
 }
 
 func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
+	defer metrics.TrackDBQueryDuration(time.Now())
+
 	rows, err := repo.db.QueryContext(ctx, "select * from users")
 	if err != nil {
 		log.Printf("Error querying users: %e", err)
+		metrics.TrackDBErrorAdd()
 		return nil, err
 	}
 
@@ -30,6 +35,7 @@ func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
 		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
 		if err != nil {
 			log.Printf("Error scanning row: %e", err)
+			metrics.TrackDBErrorAdd()
 			return nil, err
 		}
 		users = append(users, u.ToDomainModel())
@@ -39,20 +45,16 @@ func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
 }
 
 func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
-	if err := repo.ping(); err != nil {
-		log.Printf("[UserMysqlRepository:Save]%s", err)
-		return fmt.Errorf("[UserMysqlRepository:Save][err: cannot connect to database]")
-	}
+	defer metrics.TrackDBQueryDuration(time.Now())
 
-	_, err := repo.db.ExecContext(
+	if _, err := repo.db.ExecContext(
 		ctx,
 		"insert into users (id, first_name, last_name, email, password) values ($1, $2, $3, $4, $5);",
 		u.Id, u.FirstName, u.LastName, u.Email, u.Password,
-	)
-
-	if err != nil {
+	); err != nil {
 		er := fmt.Errorf("[UserMysqlRepository:Save][err: %w]", err)
 		log.Println(er)
+		metrics.TrackDBErrorAdd()
 		return err
 	}
 
@@ -60,22 +62,24 @@ func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
 }
 
 func (repo UserMysqlRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
+	defer metrics.TrackDBQueryDuration(time.Now())
+
 	row := repo.db.QueryRowContext(ctx, "select * from users where email = $1", email)
+	if row.Err() != nil {
+		er := fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", row.Err())
+		log.Println(er)
+		metrics.TrackDBErrorAdd()
+		return user.User{}, er
+	}
 
 	var u UserMysql
 	err := row.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
 	if err != nil {
-		log.Printf("unable to scan row into user variable: %e", err)
-		return user.User{}, err
+		er := fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", err)
+		log.Println(er)
+		metrics.TrackDBErrorAdd()
+		return user.User{}, er
 	}
 
 	return user.New(u.Id, u.FirstName, u.LastName, u.Email, u.Password), nil
-}
-
-func (repo UserMysqlRepository) ping() error {
-	if err := repo.db.Ping(); err != nil {
-		return fmt.Errorf("[ping][err: %w]", err)
-	}
-
-	return nil
 }

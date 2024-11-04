@@ -3,8 +3,9 @@ package infra
 import (
 	"context"
 	"database/sql"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"log"
+
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 )
 
 type AccountMysqlRepository struct {
@@ -18,7 +19,7 @@ func NewAccountMysqlRepository(db *sql.DB) AccountMysqlRepository {
 func (repo AccountMysqlRepository) Save(ctx context.Context, account account.Account) error {
 	_, err := repo.db.ExecContext(
 		ctx,
-		"INSERT INTO accounts (id) VALUES (?)",
+		"INSERT INTO accounts (id) VALUES ($1)",
 		account.Id,
 	)
 

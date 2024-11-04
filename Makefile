@@ -62,13 +62,16 @@ tidy-users:
 test: test-accounts test-transactions test-users
 
 test-accounts:
-	@go test ./internal/accounts/...
+	@echo "Running accounts service tests..."
+	@gotestsum --format-icons hivis ./internal/accounts/...
 
 test-transactions:
-	@go test ./internal/transactions/...
+	@echo "\nRunning transactions service tests..."
+	@gotestsum --format-icons hivis ./internal/transactions/...
 
 test-users:
-	@go test ./internal/users/...
+	@echo "\nRunning users service tests..."
+	@gotestsum --format-icons hivis ./internal/users/...
 
 # Code linting
 lint: lint-accounts lint-transactions

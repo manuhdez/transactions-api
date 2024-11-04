@@ -20,6 +20,7 @@ type DBConfig struct {
 func newDBConfig() DBConfig {
 	conf := DBConfig{
 		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 		Database: os.Getenv("DB_DATABASE"),
@@ -41,5 +42,11 @@ func NewDBConnection() *sql.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	if pingErr := db.Ping(); pingErr != nil {
+		panic(pingErr)
+	}
+
+	fmt.Println("Database successfully connected")
 	return db
 }

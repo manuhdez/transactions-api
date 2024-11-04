@@ -50,7 +50,7 @@ func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.
 }
 
 func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string) ([]transaction.Transaction, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions WHERE account_id LIKE ?", id)
+	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions WHERE account_id = $1", id)
 	if err != nil {
 		log.Printf("Query failed: %e", err)
 		return []transaction.Transaction{}, err
@@ -79,7 +79,7 @@ func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string
 func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trans transaction.Transaction) error {
 	_, err := r.db.ExecContext(
 		ctx,
-		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES ($1, $2, $3, $4, $5)",
 		trans.AccountId,
 		trans.Amount,
 		trans.Type,

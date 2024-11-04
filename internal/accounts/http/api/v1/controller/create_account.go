@@ -7,6 +7,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )

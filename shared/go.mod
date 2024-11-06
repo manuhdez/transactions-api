@@ -1,4 +1,4 @@
-module shared
+ module github.com/manuhdez/transactions-api/shared
 
 go 1.23.2
 

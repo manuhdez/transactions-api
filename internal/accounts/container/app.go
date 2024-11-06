@@ -10,7 +10,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/accounts/http/router"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 var Databases = wire.NewSet(

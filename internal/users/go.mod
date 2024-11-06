@@ -1,17 +1,20 @@
 module github.com/manuhdez/transactions-api/internal/users
 
-go 1.23
+go 1.23.2
 
 require (
 	github.com/charmbracelet/log v0.2.1
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.0
+	github.com/manuhdez/transactions-api/shared v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.20.5
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/crypto v0.24.0
 )
+
+replace github.com/manuhdez/transactions-api/shared => ../../shared
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -22,8 +25,9 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.1 // indirect

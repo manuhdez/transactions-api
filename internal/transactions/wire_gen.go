@@ -13,7 +13,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 // Injectors from wire.go:

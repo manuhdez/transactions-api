@@ -8,7 +8,7 @@ import (
 	"github.com/streadway/amqp"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 const (

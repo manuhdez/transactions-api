@@ -10,7 +10,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/users/http/api"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/users/infra"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 type App struct {

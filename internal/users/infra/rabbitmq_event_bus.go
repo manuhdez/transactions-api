@@ -8,7 +8,7 @@ import (
 	"github.com/streadway/amqp"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/event"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 const (
@@ -72,21 +72,21 @@ func RegisterHandlers(eventHandlers ...event.Handler) map[event.Type]event.Handl
 func (b RabbitEventBus) Publish(_ context.Context, event event.Event) error {
 	ch, err := b.connection.Channel()
 	if err != nil {
-		return err
+		return fmt.Errorf("[RabbitEventBus:Publish][msg: cannot stablish channel connection][err:%w]", err)
 	}
+
 	defer ch.Close()
 
-	key := string(event.Type())
-	err = ch.Publish(exchangeName, key, false, false, amqp.Publishing{
+	key := event.Type().String()
+	if err = ch.Publish(exchangeName, key, false, false, amqp.Publishing{
 		Type:        key,
-		ContentType: "text/plain",
 		Body:        event.Body(),
-	})
-
-	if err != nil {
-		return err
+		ContentType: "text/plain",
+	}); err != nil {
+		return fmt.Errorf("[RabbitEventBus:Publish][msg: could not publish message %s][err: %w]", key, err)
 	}
-	log.Printf("Message %s sent!", event.Type())
+
+	log.Printf("Message %s sent!", key)
 	return nil
 }
 

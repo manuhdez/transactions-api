@@ -5,6 +5,7 @@ services:
     working_dir: /internal/accounts
     volumes:
       - ./internal:/internal
+      - ./shared:/shared
     env_file:
       - internal/accounts/.env
       - .env
@@ -23,6 +24,7 @@ services:
     working_dir: /internal/transactions
     volumes:
       - ./internal:/internal
+      - ./shared:/shared
     env_file:
       - internal/transactions/.env
       - .env
@@ -41,6 +43,7 @@ services:
     working_dir: /internal/users
     volumes:
       - ./internal:/internal
+      - ./shared:/shared
     env_file:
       - internal/users/.env
       - .env

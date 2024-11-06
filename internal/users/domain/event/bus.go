@@ -11,6 +11,10 @@ var (
 
 type Type string
 
+func (t Type) String() string {
+	return string(t)
+}
+
 type Event interface {
 	Type() Type
 	Body() []byte

@@ -9,7 +9,7 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
-	"shared/config"
+	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 const (

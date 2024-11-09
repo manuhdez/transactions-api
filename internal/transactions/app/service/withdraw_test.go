@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -8,45 +8,64 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 )
 
-func NewTestSuite() (*mocks.TransactionMockRepository, *mocks.EventBus, Withdraw) {
-	repository := new(mocks.TransactionMockRepository)
-	bus := new(mocks.EventBus)
-	service := NewWithdrawService(repository, bus)
-
-	return repository, bus, service
+type suite struct {
+	trxRepo  *mocks.TransactionMockRepository
+	eventBus *mocks.EventBus
+	withdraw service.Withdraw
 }
 
-func TestWithdrawService(t *testing.T) {
+func newTestSuite() suite {
+	trxRepo := new(mocks.TransactionMockRepository)
+	eventBus := new(mocks.EventBus)
 
-	t.Run(
-		"Should create a new withdraw", func(t *testing.T) {
-			repository, _, service := NewTestSuite()
+	return suite{
+		trxRepo:  trxRepo,
+		eventBus: eventBus,
+		withdraw: service.NewWithdrawService(trxRepo, eventBus),
+	}
+}
 
-			repository.On("Withdraw", context.Background(), mock.Anything).Return(nil)
-			withdraw := transaction.NewTransaction(transaction.Withdrawal, "1", 125.5, "EUR")
+func (s *suite) assertMocks(t *testing.T) {
+	s.trxRepo.AssertExpectations(t)
+	s.eventBus.AssertExpectations(t)
+}
 
-			err := service.Invoke(context.Background(), withdraw)
-			assert.NoError(t, err)
-		},
+func TestWithDraw_Invoke_Success(t *testing.T) {
+	s := newTestSuite()
+	defer s.assertMocks(t)
+
+	s.trxRepo.On("Withdraw", context.Background(), mock.Anything).Return(nil).Once()
+	s.eventBus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
+
+	err := s.withdraw.Invoke(
+		context.Background(),
+		transaction.NewTransaction(transaction.Withdrawal, "1", 125.5, "EUR"),
 	)
+	assert.NoError(t, err)
+}
 
-	t.Run(
-		"Should return an error when creating a new withdraw", func(t *testing.T) {
-			repository, _, service := NewTestSuite()
+func TestWithdraw_Invalid_Trx(t *testing.T) {
+	s := newTestSuite()
+	defer s.assertMocks(t)
 
-			expected := errors.New("could not create the withdraw")
-			repository.On("Withdraw", context.Background(), mock.Anything).Return(expected)
-			withdraw := transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR")
+	ctx := context.Background()
+	trx := transaction.NewTransaction("invalid transaction type", "1", 125.5, "EUR")
+	err := s.withdraw.Invoke(ctx, trx)
+	assert.ErrorIs(t, err, service.ErrInvalidTransactionType)
+}
 
-			res := service.Invoke(context.Background(), withdraw)
+func TestWithDraw_Invoke_Repo_Fail(t *testing.T) {
+	s := newTestSuite()
+	defer s.assertMocks(t)
 
-			if assert.Error(t, res) {
-				assert.Equal(t, expected, res)
-			}
-		},
-	)
+	expected := errors.New("could not create the withdraw")
+	s.trxRepo.On("Withdraw", context.Background(), mock.Anything).Return(expected)
+
+	err := s.withdraw.Invoke(context.Background(), transaction.NewTransaction(transaction.Withdrawal, "23", 33253, "EUR"))
+	assert.ErrorIs(t, err, expected)
 }

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
@@ -18,23 +18,18 @@ func NewWithdrawService(r transaction.Repository, b event.Bus) Withdraw {
 	return Withdraw{r, b}
 }
 
-func (w Withdraw) Invoke(ctx context.Context, withdraw transaction.Transaction) error {
-	if withdraw.Type != transaction.Withdrawal {
-		return errors.New("invalid transaction type")
+func (w Withdraw) Invoke(ctx context.Context, trx transaction.Transaction) error {
+	if trx.Type != transaction.Withdrawal {
+		return fmt.Errorf("[Withdraw:Invoke][transaction:%+v][err: %w]", trx, ErrInvalidTransactionType)
 	}
 
-	err := w.repository.Withdraw(ctx, withdraw)
-	if err != nil {
-		log.Printf("There was an error executing the withdraw: %e", err)
-		return err
+	if err := w.repository.Withdraw(ctx, trx); err != nil {
+		return fmt.Errorf("[Withdraw:Invoke]%w", err)
 	}
 
-	go func() {
-		err = w.bus.Publish(ctx, event.NewWithdrawCreated(withdraw.AccountId, withdraw.Amount))
-		if err != nil {
-			log.Println("error publishing withdraw created event: ", err)
-		}
-	}()
+	if err := w.bus.Publish(ctx, event.NewWithdrawCreated(trx.AccountId, trx.Amount)); err != nil {
+		log.Println("error publishing transaction created event: ", err)
+	}
 
-	return err
+	return nil
 }

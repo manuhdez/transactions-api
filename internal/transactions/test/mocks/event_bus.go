@@ -2,10 +2,10 @@ package mocks
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/stretchr/testify/mock"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
-	"github.com/stretchr/testify/mock"
 )
 
 type EventBus struct {
@@ -13,7 +13,6 @@ type EventBus struct {
 }
 
 func (m *EventBus) Publish(ctx context.Context, e event.Event) error {
-	fmt.Println("event published:", e)
 	args := m.Called(ctx, e)
 	return args.Error(0)
 }

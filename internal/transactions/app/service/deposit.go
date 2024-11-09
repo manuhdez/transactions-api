@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
@@ -22,20 +22,17 @@ func NewDepositService(r transaction.Repository, b event.Bus) Deposit {
 
 func (s Deposit) Invoke(ctx context.Context, t transaction.Transaction) error {
 	if t.Type != transaction.Deposit {
-		return errors.New("invalid transaction type")
+		return fmt.Errorf("[Deposit:Invoke][transaction:%+v][%w]", t, ErrInvalidTransactionType)
 	}
 
-	err := s.repository.Deposit(ctx, t)
-	if err != nil {
-		return err
+	if err := s.repository.Deposit(ctx, t); err != nil {
+		return fmt.Errorf("[Deposit:Invoke]%w", err)
 	}
 
-	go func() {
-		err := s.bus.Publish(ctx, event.NewDepositCreated(t.AccountId, t.Amount))
-		if err != nil {
-			log.Println("error publishing deposit created event:", err)
-		}
-	}()
+	// TODO: what should we do if the publish fails? Where do we handle it?
+	if err := s.bus.Publish(ctx, event.NewDepositCreated(t.AccountId, t.Amount)); err != nil {
+		log.Printf("[Deposit:Invoke][transaction: %+v]%s", t, err)
+	}
 
 	return nil
 }

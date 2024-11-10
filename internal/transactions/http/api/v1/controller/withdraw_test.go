@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -15,13 +15,14 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 )
 
 type withDrawSuite struct {
 	suite.Suite
 	controller Withdraw
-	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
+	server     *echo.Echo
 }
 
 func (s *withDrawSuite) SetupTest() {
@@ -35,8 +36,9 @@ func (s *withDrawSuite) SetupTest() {
 	s.controller = NewWithdraw(srv)
 	s.recorder = httptest.NewRecorder()
 
-	ctx, _ := gin.CreateTestContext(s.recorder)
-	s.ctx = ctx
+	e := echo.New()
+	e.Validator = sharedhttp.NewRequestValidator()
+	s.server = e
 }
 
 func (s *withDrawSuite) TestWithdrawController_Success() {
@@ -45,9 +47,12 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
 
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
+	ctx := s.server.NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), 201, s.recorder.Code)
 }
 
@@ -57,8 +62,10 @@ func (s *withDrawSuite) TestWithdrawController_BadRequest() {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
 
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	ctx := s.server.NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 

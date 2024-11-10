@@ -7,20 +7,22 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func setup(body io.Reader) (*httptest.ResponseRecorder, *gin.Context, *mocks.TransactionMockRepository) {
+func setup(body io.Reader) (*httptest.ResponseRecorder, echo.Context, *mocks.TransactionMockRepository) {
 	recorder := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(recorder)
-	ctx.Request = httptest.NewRequest(http.MethodGet, "/transactions/123", body)
+	req := httptest.NewRequest(http.MethodGet, "/transactions/123", body)
+	ctx := echo.New().NewContext(req, recorder)
 	repo := new(mocks.TransactionMockRepository)
+
 	return recorder, ctx, repo
 }
 

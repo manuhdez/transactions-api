@@ -14,7 +14,7 @@ services:
 
       - name: accounts-path
         strip_path: false
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST", "DELETE"]
         paths:
           - /api/v1/accounts
           - /api/v1/accounts/:id

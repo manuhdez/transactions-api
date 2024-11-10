@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/charmbracelet/log"
@@ -13,8 +14,8 @@ func main() {
 
 	go app.EventBus.Listen()
 
-	err := app.Server.Engine.Run(fmt.Sprintf(":%s", port))
-	if err != nil {
-		log.Error("Server crashed with ", "error", err.Error())
+	addr := fmt.Sprintf(":%s", port)
+	if err := http.ListenAndServe(addr, app.Server.Engine); err != nil {
+		log.Fatalf("Accounts service crashed: %s", err)
 	}
 }

@@ -2,6 +2,8 @@ package infra
 
 import (
 	"encoding/json"
+	"log"
+	"log/slog"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 )
@@ -17,11 +19,13 @@ func NewUserJson(u user.User) UserJson {
 	return UserJson{u.Id, u.FirstName, u.LastName, u.Email}
 }
 
-func (u UserJson) ToJson() ([]byte, error) {
+func (u UserJson) MustJson() []byte {
+	log.Printf("[UserJson:MustJson][user: %+v]", u)
 	str, err := json.Marshal(u)
 	if err != nil {
-		return nil, err
+		slog.Error("[UserJson:MustJson]", "error", err)
 	}
 
-	return str, nil
+	log.Printf("[UserJson:MustJson]%s", str)
+	return str
 }

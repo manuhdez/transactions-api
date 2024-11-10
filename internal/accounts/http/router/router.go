@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
-	"github.com/manuhdez/transactions-api/shared/infra/prometheus"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 )
 
 type Router struct {
@@ -38,7 +38,7 @@ func NewRouter(
 		v1.DELETE("/accounts/:id", deleteAccount.Handle)
 	}
 
-	e.GET("/metrics", prometheus.EchoWrapper(promhttp.Handler()))
+	e.GET("/metrics", sharedhttp.EchoWrapper(promhttp.Handler()))
 
 	return Router{Engine: e}
 }

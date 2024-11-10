@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 )
 
 type Router struct {
@@ -37,7 +38,7 @@ func NewRouter(
 		v1.GET("/transactions/:id", findAccountTransactions.Handle)
 	}
 
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	e.GET("/metrics", sharedhttp.EchoWrapper(promhttp.Handler()))
 
 	return Router{Engine: e}
 }

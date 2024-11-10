@@ -58,8 +58,7 @@ func TestLogin_Handle(t *testing.T) {
 			err = ctrl.Handle(ctx)
 			assert.NoError(t, err)
 
-			status := w.Result().StatusCode
-			if status != tt.status {
+			if status := w.Result().StatusCode; status != tt.status {
 				t.Errorf("Login Status: got %d, want %d", status, tt.status)
 			}
 

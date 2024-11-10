@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -27,19 +26,13 @@ func (ctrl GetAllUsers) Handle(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	data := getResponseData(users)
-	response, err := json.Marshal(data)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusOK, string(response))
+	return c.JSON(http.StatusOK, echo.Map{"users": getResponseData(users)})
 }
 
 func getResponseData(users []user.User) []infra.UserJson {
-	var res []infra.UserJson
-	for _, u := range users {
-		res = append(res, infra.NewUserJson(u))
+	res := make([]infra.UserJson, len(users))
+	for i := range users {
+		res[i] = infra.NewUserJson(users[i])
 	}
 	return res
 }

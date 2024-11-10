@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -42,7 +41,7 @@ func (ctrl Login) Handle(c echo.Context) error {
 
 	user, err := ctrl.loginService.Login(req.Email, req.Password)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
 	}
 
 	token, err := ctrl.tokenService.CreateToken(user.Id)
@@ -50,10 +49,9 @@ func (ctrl Login) Handle(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	res, _ := json.Marshal(LoginResponse{
+	return c.JSON(http.StatusOK, LoginResponse{
 		Success: true,
 		UserId:  user.Id,
 		Token:   token,
 	})
-	return c.JSON(http.StatusOK, echo.Map{"data": string(res)})
 }

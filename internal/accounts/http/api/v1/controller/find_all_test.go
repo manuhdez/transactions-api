@@ -7,21 +7,22 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestFindAllController(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/accounts", nil)
 	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = req
+	e := echo.New()
+	ctx := e.NewContext(req, w)
 
 	t.Run("returns a list of accounts", func(t *testing.T) {
 		accounts := []account.Account{
@@ -34,7 +35,8 @@ func TestFindAllController(t *testing.T) {
 		repo.On("FindAll", mock.Anything).Return(accounts, nil)
 
 		s := service.NewFindAllService(repo)
-		NewFindAllAccounts(s).Handle(ctx)
+		err := NewFindAllAccounts(s).Handle(ctx)
+		assert.NoError(t, err)
 
 		response := w.Result()
 		assert.Equal(t, http.StatusOK, response.StatusCode)

@@ -3,14 +3,15 @@ package router
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 )
 
 type Router struct {
-	Engine *gin.Engine
+	Engine *echo.Echo
 }
 
 // NewRouter initializes a new router for dependency injection, returning a gin.Engine instance.
@@ -20,31 +21,30 @@ func NewRouter(
 	findAllTransactionsController controller.FindAllTransactions,
 	findAccountTransactions controller.FindAccountTransactions,
 ) Router {
-	router := gin.Default()
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
-	router.GET("/status", statusHandler)
+	e.GET("/status", statusHandler)
 
-	api := router.Group("/api")
+	api := e.Group("/api")
+	v1 := api.Group("/v1")
 	{
-		v1 := api.Group("/v1")
-		{
-			v1.POST("/deposit", depositController.Handle)
-			v1.POST("/withdraw", withdrawController.Handle)
-			v1.GET("/transactions", findAllTransactionsController.Handle)
-			v1.GET("/transactions/:id", findAccountTransactions.Handle)
-		}
+		v1.POST("/deposit", depositController.Handle)
+		v1.POST("/withdraw", withdrawController.Handle)
+		v1.GET("/transactions", findAllTransactionsController.Handle)
+		v1.GET("/transactions/:id", findAccountTransactions.Handle)
 	}
 
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
-	return Router{router}
+	return Router{Engine: e}
 }
 
-func statusHandler(ctx *gin.Context) {
-	type statusResponse struct {
-		Status  string `json:"status"`
-		Service string `json:"service"`
-	}
-
-	ctx.JSON(http.StatusOK, statusResponse{"ok", "transactions"})
+func statusHandler(c echo.Context) error {
+	return c.JSON(
+		http.StatusOK,
+		echo.Map{"status": "ok", "service": "transactions"},
+	)
 }

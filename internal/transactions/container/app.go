@@ -1,7 +1,6 @@
 package container
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
@@ -54,13 +53,13 @@ var Router = wire.NewSet(
 )
 
 type App struct {
-	Server   *gin.Engine
+	Server   router.Router
 	EventBus event.Bus
 }
 
 func NewApp(router router.Router, eventBus event.Bus) App {
 	return App{
-		Server:   router.Engine,
+		Server:   router,
 		EventBus: eventBus,
 	}
 }

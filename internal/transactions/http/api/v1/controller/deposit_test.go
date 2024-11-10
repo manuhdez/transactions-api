@@ -7,7 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
@@ -22,7 +23,6 @@ type Suite struct {
 	repository *mocks.TransactionMockRepository
 	bus        *mocks.EventBus
 	controller controller.Deposit
-	ctx        *gin.Context
 	recorder   *httptest.ResponseRecorder
 }
 
@@ -35,9 +35,6 @@ func (s *Suite) SetupTest() {
 
 	s.controller = controller.NewDeposit(service.NewDepositService(s.repository, s.bus))
 	s.recorder = httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(s.recorder)
-	s.ctx = ctx
 }
 
 func (s *Suite) TestDepositController_Success() {
@@ -46,15 +43,16 @@ func (s *Suite) TestDepositController_Success() {
 		s.Fail("Error marshaling json")
 	}
 
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	ctx := echo.New().NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != 201 {
 		s.T().Errorf("Expected status code 201, got %d", s.recorder.Code)
 	}
-	if s.recorder.Body.String() != `{"message":"Deposit successfully created"}` {
-		s.T().Errorf("Expected body message, got %s", s.recorder.Body.String())
-	}
+	assert.JSONEq(s.T(), `{"message":"Deposit successfully created"}`, s.recorder.Body.String())
 }
 
 func (s *Suite) TestDepositController_MissingAccount() {
@@ -62,9 +60,11 @@ func (s *Suite) TestDepositController_MissingAccount() {
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	ctx := echo.New().NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
@@ -76,9 +76,11 @@ func (s *Suite) TestDepositController_MissingAmount() {
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	ctx := echo.New().NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
@@ -90,9 +92,11 @@ func (s *Suite) TestDepositController_MissingCurrency() {
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
-	s.ctx.Request = httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	ctx := echo.New().NewContext(req, s.recorder)
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)

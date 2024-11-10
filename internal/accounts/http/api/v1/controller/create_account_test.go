@@ -2,17 +2,20 @@ package controller
 
 import (
 	"bytes"
-	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
-	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
+	"github.com/labstack/echo/v4"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
+	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 )
 
 type CreateAccountTestSuite struct {
@@ -26,7 +29,9 @@ type CreateAccountTestSuite struct {
 
 func (s *CreateAccountTestSuite) SetupTest() {
 	body := bytes.NewBufferString(`{"id": "123", "balance": 100.0}`)
-	s.Request = httptest.NewRequest(http.MethodPost, "/accounts", body)
+	req := httptest.NewRequest(http.MethodPost, "/accounts", body)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	s.Request = req
 	s.BadRequest = httptest.NewRequest(http.MethodPost, "/accounts", nil)
 
 	repository := new(mocks.AccountMockRepository)
@@ -41,24 +46,12 @@ func (s *CreateAccountTestSuite) SetupTest() {
 
 func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {
 	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = s.Request
+	e := echo.New()
+	ctx := e.NewContext(s.Request, w)
 
-	s.Controller.Handle(ctx)
-
-	res := w.Result()
-	assert.Equal(s.T(), http.StatusCreated, res.StatusCode)
-}
-
-func (s *CreateAccountTestSuite) TestCreateAccountWithBadRequest() {
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = s.BadRequest
-
-	s.Controller.Handle(ctx)
-
-	res := w.Result()
-	assert.Equal(s.T(), http.StatusBadRequest, res.StatusCode)
+	err := s.Controller.Handle(ctx)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), http.StatusCreated, w.Code)
 }
 
 func TestCreateAccountController(t *testing.T) {

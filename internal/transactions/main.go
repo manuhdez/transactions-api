@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -12,8 +13,8 @@ func main() {
 
 	go app.EventBus.Listen()
 
-	err := app.Server.Run(fmt.Sprintf(":%s", port))
-	if err != nil {
+	addr := fmt.Sprintf(":%s", port)
+	if err := http.ListenAndServe(addr, app.Server.Engine); err != nil {
 		log.Fatalf("transactions service crashed: %s", err.Error())
 	}
 }

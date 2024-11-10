@@ -3,7 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
@@ -17,20 +18,18 @@ func NewDeposit(s service.Deposit) Deposit {
 	return Deposit{s}
 }
 
-func (c Deposit) Handle(ctx *gin.Context) {
+func (ctrl Deposit) Handle(c echo.Context) error {
 	var req request.Deposit
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 
 	deposit := transaction.NewTransaction(transaction.Deposit, req.Account, req.Amount, req.Currency)
 
-	err := c.service.Invoke(ctx, deposit)
-	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
-		return
+	ctx := c.Request().Context()
+	if err := ctrl.service.Invoke(ctx, deposit); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"message": "Deposit successfully created"})
+	return c.JSON(http.StatusCreated, echo.Map{"message": "Deposit successfully created"})
 }

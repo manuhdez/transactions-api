@@ -23,6 +23,7 @@ func NewCreateAccount(s service.CreateService) CreateAccount {
 func (ctrl CreateAccount) Handle(c echo.Context) error {
 	var req request.CreateAccount
 	if err := c.Bind(&req); err != nil {
+		log.Printf("[CreateAccount:Handle][err: %s]", err)
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 

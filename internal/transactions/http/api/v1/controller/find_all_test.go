@@ -3,19 +3,22 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
 type testSuite struct {
@@ -39,11 +42,15 @@ func (s *testSuite) SetupTest() {
 func (s *testSuite) TestFindAllSuccess() {
 	expected := http.StatusOK
 
-	s.repository.On("FindAll", mock.Anything, mock.Anything).Return([]transaction.Transaction{
-		{Type: transaction.Withdrawal, Amount: 125.44, AccountId: "22"},
-	}, nil)
-	s.ctx.Request = httptest.NewRequest(http.MethodGet, "/transactions", nil)
-	s.controller.Handle(s.ctx)
+	s.repository.On("FindAll", mock.Anything, mock.Anything).Return(
+		[]transaction.Transaction{{Type: transaction.Withdrawal, Amount: 125.44, AccountId: "22"}},
+		nil,
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
+	ctx := echo.New().NewContext(req, s.recorder)
+	err := s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != expected {
 		s.T().Errorf("Expected status code %d, got %d", expected, s.recorder.Code)
@@ -61,8 +68,10 @@ func (s *testSuite) TestFindAllSuccess() {
 func (s *testSuite) TestFindAllError() {
 	expected := http.StatusInternalServerError
 	s.repository.On("FindAll", mock.Anything, mock.Anything).Return([]transaction.Transaction{}, errors.New("there was an error"))
-	s.ctx.Request = httptest.NewRequest(http.MethodGet, "/transactions", nil)
-	s.controller.Handle(s.ctx)
+	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
+	ctx := echo.New().NewContext(req, s.recorder)
+	err := s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
 
 	if s.recorder.Code != expected {
 		s.T().Errorf("Expected status code %d, got %d", expected, s.recorder.Code)

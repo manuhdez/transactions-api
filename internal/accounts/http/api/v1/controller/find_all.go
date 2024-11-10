@@ -3,7 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
@@ -16,12 +17,13 @@ func NewFindAllAccounts(s service.FindAllService) FindAllAccounts {
 	return FindAllAccounts{s}
 }
 
-func (c FindAllAccounts) Handle(ctx *gin.Context) {
-	accounts, err := c.service.Find(ctx)
+func (ctrl FindAllAccounts) Handle(c echo.Context) error {
+	ctx := c.Request().Context()
+	accounts, err := ctrl.service.Find(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
 	response := infra.NewJsonAccountList(accounts)
-	ctx.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, response)
 }

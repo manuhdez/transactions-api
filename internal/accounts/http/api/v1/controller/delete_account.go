@@ -3,7 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 )
 
@@ -15,13 +16,13 @@ func NewDeleteAccount(s service.DeleteAccountService) DeleteAccount {
 	return DeleteAccount{s}
 }
 
-func (c DeleteAccount) Handle(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ctrl DeleteAccount) Handle(c echo.Context) error {
+	id := c.Param("id")
+	ctx := c.Request().Context()
 
-	err := c.service.Delete(ctx, id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := ctrl.service.Delete(ctx, id); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"id": id})
+	return c.JSON(http.StatusOK, echo.Map{"msg": "account deleted."})
 }

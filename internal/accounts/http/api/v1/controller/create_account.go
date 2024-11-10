@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
+	"github.com/labstack/echo/v4"
 
-	"github.com/gin-gonic/gin"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
@@ -20,21 +20,17 @@ func NewCreateAccount(s service.CreateService) CreateAccount {
 	return CreateAccount{s}
 }
 
-func (c CreateAccount) Handle(ctx *gin.Context) {
+func (ctrl CreateAccount) Handle(c echo.Context) error {
 	var req request.CreateAccount
-	err := ctx.BindJSON(&req)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 
 	acc := account.New(req.Id, req.Balance, req.Currency)
-	err = c.service.Create(acc)
-	if err != nil {
+	if err := ctrl.service.Create(acc); err != nil {
 		log.Printf("Error creating account: %e", err)
-		ctx.Status(http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"id": acc.Id()})
+	return c.JSON(http.StatusCreated, echo.Map{"id": acc.Id()})
 }

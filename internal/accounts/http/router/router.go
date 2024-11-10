@@ -3,15 +3,15 @@ package router
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/controller"
-	"github.com/manuhdez/transactions-api/internal/accounts/http/middleware"
 )
 
 type Router struct {
-	Engine *gin.Engine
+	Engine *echo.Echo
 }
 
 func NewRouter(
@@ -20,14 +20,15 @@ func NewRouter(
 	findAccount controller.FindAccount,
 	deleteAccount controller.DeleteAccount,
 ) Router {
-	router := gin.Default()
+	e := echo.New()
 
 	// Register global middleware
-	router.Use(middleware.CORSMiddleware())
+	e.Use(middleware.CORS())
+	e.Use(middleware.Logger())
 
-	router.GET("/status", statusHandler)
+	e.GET("/status", statusHandler)
 
-	api := router.Group("/api")
+	api := e.Group("/api")
 	v1 := api.Group("/v1")
 	{
 		v1.GET("/accounts", findAllAccounts.Handle)
@@ -36,15 +37,18 @@ func NewRouter(
 		v1.DELETE("/accounts/:id", deleteAccount.Handle)
 	}
 
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	e.GET("/metrics", echoWrap(promhttp.Handler()))
 
-	return Router{router}
+	return Router{Engine: e}
 }
 
-func statusHandler(ctx *gin.Context) {
-	type statusResponse struct {
-		Status  string `json:"status"`
-		Service string `json:"service"`
+func echoWrap(h http.Handler) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		h.ServeHTTP(c.Response(), c.Request())
+		return nil
 	}
-	ctx.JSON(http.StatusOK, statusResponse{"ok", "accounts"})
+}
+
+func statusHandler(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, echo.Map{"status": "ok", "service": "accounts"})
 }

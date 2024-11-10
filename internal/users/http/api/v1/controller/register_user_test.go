@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
@@ -29,10 +31,13 @@ func TestRegisterUser_Handle(t *testing.T) {
 		bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 		reqData := getValidRequest(t)
 		req := httptest.NewRequest(http.MethodPost, "/", reqData)
-		recorder := httptest.NewRecorder()
-		ctrl.Handle(recorder, req)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		w := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, w)
+		err := ctrl.Handle(ctx)
+		assert.NoError(t, err)
 
-		got := recorder.Result().StatusCode
+		got := w.Result().StatusCode
 		want := http.StatusCreated
 		if got != want {
 			t.Errorf("Http Status: got %d want %d", got, want)
@@ -41,10 +46,13 @@ func TestRegisterUser_Handle(t *testing.T) {
 
 	t.Run("returns status 400 with no body", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		recorder := httptest.NewRecorder()
-		ctrl.Handle(recorder, req)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		w := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, w)
+		err := ctrl.Handle(ctx)
+		assert.NoError(t, err)
 
-		got := recorder.Result().StatusCode
+		got := w.Result().StatusCode
 		want := http.StatusBadRequest
 		if got != want {
 			t.Errorf("Http Status: got %d want %d", got, want)
@@ -54,10 +62,13 @@ func TestRegisterUser_Handle(t *testing.T) {
 	t.Run("returns status 400 with missing fields", func(t *testing.T) {
 		reqData := getMissingFieldRequest(t)
 		req := httptest.NewRequest(http.MethodPost, "/", reqData)
-		recorder := httptest.NewRecorder()
-		ctrl.Handle(recorder, req)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		w := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, w)
+		err := ctrl.Handle(ctx)
+		assert.NoError(t, err)
 
-		got := recorder.Result().StatusCode
+		got := w.Result().StatusCode
 		want := http.StatusBadRequest
 		if got != want {
 			t.Errorf("Http Status: got %d want %d", got, want)
@@ -65,18 +76,17 @@ func TestRegisterUser_Handle(t *testing.T) {
 	})
 
 	t.Run("returns the newly created user json", func(t *testing.T) {
-		reqData := getValidRequest(t)
-		req := httptest.NewRequest(http.MethodPost, "/", reqData)
-		recorder := httptest.NewRecorder()
-		ctrl.Handle(recorder, req)
+		req := httptest.NewRequest(http.MethodPost, "/", getValidRequest(t))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		w := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, w)
+		err := ctrl.Handle(ctx)
+		assert.NoError(t, err)
 
-		body, _ := io.ReadAll(recorder.Body)
+		body, _ := io.ReadAll(w.Body)
 
-		got := string(body)
 		want := `{"id":"123-456","first_name":"Ramon","last_name":"Perez","email":"ramon@perez.com"}`
-		if got != want {
-			t.Errorf("Http Status: got %s want %s", got, want)
-		}
+		assert.JSONEq(t, want, string(body))
 	})
 }
 

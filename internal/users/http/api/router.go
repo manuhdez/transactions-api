@@ -6,16 +6,18 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/manuhdez/transactions-api/internal/users/http/api/middleware"
+	customMiddleware "github.com/manuhdez/transactions-api/internal/users/http/api/middleware"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 )
 
 type Router struct {
 	port   string
-	engine *mux.Router
+	engine *echo.Echo
 }
 
 func NewRouter(
@@ -24,24 +26,30 @@ func NewRouter(
 	loginUser controller.Login,
 	getAllUsers controller.GetAllUsers,
 ) Router {
-	router := mux.NewRouter()
+	e := echo.New()
 
 	// middlewares
-	router.Use(middleware.RequestLogger)
-	router.Use(middleware.RequestMonitoring)
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+	e.Use(customMiddleware.RequestMonitoring)
 
 	// handlers
-	router.HandleFunc("/health-check", healthCheck.Handle).Methods(http.MethodGet)
-	router.HandleFunc("/api/v1/auth/signup", registerUser.Handle).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/auth/login", loginUser.Handle).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/users", getAllUsers.Handle).Methods(http.MethodGet)
+	e.GET("/health-check", healthCheck.Handle)
+
+	v1 := e.Group("/api/v1")
+	{
+		v1.POST("/auth/signup", registerUser.Handle)
+		v1.POST("/auth/login", loginUser.Handle)
+		v1.GET("/users", getAllUsers.Handle)
+	}
 
 	// export prometheus metrics
-	router.HandleFunc("/metrics", promhttp.Handler().ServeHTTP).Methods(http.MethodGet)
+	e.GET("/metrics", sharedhttp.EchoWrapper(promhttp.Handler()))
 
 	return Router{
 		port:   os.Getenv("APP_PORT"),
-		engine: router,
+		engine: e,
 	}
 }
 

@@ -8,6 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/users/http/api/v1/request"
@@ -49,15 +52,18 @@ func TestLogin_Handle(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-			recorder := httptest.NewRecorder()
-			ctrl.Handle(recorder, req)
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			ctx := echo.New().NewContext(req, w)
+			err = ctrl.Handle(ctx)
+			assert.NoError(t, err)
 
-			status := recorder.Result().StatusCode
+			status := w.Result().StatusCode
 			if status != tt.status {
 				t.Errorf("Login Status: got %d, want %d", status, tt.status)
 			}
 
-			res, err := io.ReadAll(recorder.Result().Body)
+			res, err := io.ReadAll(w.Result().Body)
 			if err != nil {
 				t.Errorf("failed to read body response: %s", err)
 			}

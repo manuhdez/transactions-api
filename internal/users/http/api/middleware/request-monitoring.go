@@ -1,14 +1,17 @@
 package middleware
 
 import (
-	"net/http"
 	"time"
+
+	"github.com/labstack/echo/v4"
 
 	"github.com/manuhdez/transactions-api/internal/users/infra/metrics"
 )
 
-func RequestMonitoring(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func RequestMonitoring(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		r := c.Request()
+
 		// Track request duration
 		defer metrics.TrackRequestDuration(time.Now(), r.URL.Path)
 
@@ -20,6 +23,6 @@ func RequestMonitoring(next http.Handler) http.Handler {
 		metrics.TrackRequestCountInc(r.Method, r.Pattern)
 
 		// Call next handler
-		next.ServeHTTP(w, r)
-	})
+		return next(c)
+	}
 }

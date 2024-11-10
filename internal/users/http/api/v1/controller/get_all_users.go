@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/manuhdez/transactions-api/internal/users/application/service"
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 	"github.com/manuhdez/transactions-api/internal/users/infra"
@@ -19,30 +21,19 @@ func NewGetAllUsersController(retriever service.UsersRetriever) GetAllUsers {
 	}
 }
 
-func (ctlr GetAllUsers) Handle(w http.ResponseWriter, _ *http.Request) {
-	users, err := ctlr.retriever.Retrieve()
+func (ctrl GetAllUsers) Handle(c echo.Context) error {
+	users, err := ctrl.retriever.Retrieve()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if len(users) == 0 {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("[]"))
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	data := getResponseData(users)
 	response, err := json.Marshal(data)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(response)
-	return
+	return c.JSON(http.StatusOK, string(response))
 }
 
 func getResponseData(users []user.User) []infra.UserJson {

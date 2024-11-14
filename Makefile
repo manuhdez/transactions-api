@@ -95,20 +95,20 @@ db-status:
 
 migrate: migrate-transactions migrate-accounts migrate-users
 
-migration:
+run-migration:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" $(cmd)
 
 migrate-accounts:
 	@echo "Running accounts service migrations 🚀" && \
-	make migration service=accounts cmd=up
+	make run-migration service=accounts cmd=up
 migrate-transactions:
 	@echo "Running transactions service migrations 🚀" && \
-	make migration service=transactions cmd=up
+	make run-migration service=transactions cmd=up
 migrate-users:
 	@echo "Running users service migrations 🚀" && \
-	make migration service=users cmd=up
+	make run-migration service=users cmd=up
 
-migration-create:
+migration:
 	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" create $(name) sql
 
 .PHONY: migration migrate

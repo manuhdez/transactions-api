@@ -25,7 +25,6 @@ var Repositories = wire.NewSet(
 
 var Services = wire.NewSet(
 	service.NewCreateService,
-	service.NewFindAllService,
 	service.NewFindAccountService,
 	service.NewDeleteAccountService,
 	service.NewIncreaseBalanceService,

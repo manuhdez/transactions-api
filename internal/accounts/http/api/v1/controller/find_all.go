@@ -9,21 +9,30 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/infra"
 )
 
-type FindAllAccounts struct {
-	service service.FindAllService
+type findAllAccountsResponse struct {
+	Accounts []infra.AccountJson `json:"accounts"`
 }
 
-func NewFindAllAccounts(s service.FindAllService) FindAllAccounts {
+type FindAllAccounts struct {
+	service service.AccountsFinder
+}
+
+func NewFindAllAccounts(s service.AccountsFinder) FindAllAccounts {
 	return FindAllAccounts{s}
 }
 
+// Handle handles the request for retrieving a list of accounts
 func (ctrl FindAllAccounts) Handle(c echo.Context) error {
+	userId, ok := c.Get("userId").(string)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "you need to be logged in"})
+	}
+
 	ctx := c.Request().Context()
-	accounts, err := ctrl.service.Find(ctx)
+	accounts, err := ctrl.service.FindByUserId(ctx, userId)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	response := infra.NewJsonAccountList(accounts)
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, findAllAccountsResponse{Accounts: infra.NewJsonAccountList(accounts)})
 }

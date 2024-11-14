@@ -8,12 +8,18 @@ import (
 
 type AccountJson struct {
 	Id       string  `json:"id"`
+	UserId   string  `json:"user_id"`
 	Balance  float32 `json:"balance"`
 	Currency string  `json:"currency"`
 }
 
 func NewJsonAccount(a account.Account) AccountJson {
-	return AccountJson{Id: a.Id(), Balance: a.Balance(), Currency: a.Currency()}
+	return AccountJson{
+		Id:       a.Id(),
+		UserId:   a.UserId.String(),
+		Balance:  a.Balance(),
+		Currency: a.Currency(),
+	}
 }
 
 func NewJsonAccountList(list []account.Account) []AccountJson {

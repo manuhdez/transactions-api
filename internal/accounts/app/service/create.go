@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
@@ -17,18 +18,15 @@ func NewCreateService(repository account.Repository, bus event.Bus) CreateServic
 	return CreateService{repository, bus}
 }
 
-func (s CreateService) Create(a account.Account) error {
-	err := s.repository.Create(a)
-	if err != nil {
-		return err
+// Create creates a new account, store it in database and publish a domain event
+func (s CreateService) Create(ctx context.Context, acc account.Account) error {
+	if err := s.repository.Create(acc); err != nil {
+		return fmt.Errorf("[CreateService:Create][err: %w]", err)
 	}
 
-	go func() {
-		err := s.bus.Publish(context.Background(), event.NewAccountCreated(a.Id(), a.Balance(), a.Currency()))
-		if err != nil {
-			log.Println("error publishing account created event:", err)
-		}
-	}()
+	if err := s.bus.Publish(ctx, event.NewAccountCreated(acc)); err != nil {
+		log.Printf("[CreateService:Create][event: NewAccountCreated][err: %s]", err)
+	}
 
 	return nil
 }

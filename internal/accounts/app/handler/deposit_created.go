@@ -21,7 +21,7 @@ func NewHandlerDepositCreated(s service.IncreaseBalanceService) DepositCreated {
 func (h DepositCreated) Handle(_ context.Context, e event.Event) error {
 	data, err := event.NewDepositCreatedBody(e.Body())
 	if err != nil {
-		fmt.Printf("error parsing event data")
+		return fmt.Errorf("error parsing event data")
 	}
 
 	return h.service.Increase(data.Account, data.Amount)

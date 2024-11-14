@@ -3,8 +3,9 @@ package mocks
 import (
 	"context"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
 )
 
 type AccountMockRepository struct {
@@ -14,11 +15,6 @@ type AccountMockRepository struct {
 func (m *AccountMockRepository) Create(a account.Account) error {
 	args := m.Called(a)
 	return args.Error(0)
-}
-
-func (m *AccountMockRepository) FindAll(c context.Context) ([]account.Account, error) {
-	args := m.Called(c)
-	return args.Get(0).([]account.Account), args.Error(1)
 }
 
 func (m *AccountMockRepository) Find(c context.Context, id string) (account.Account, error) {
@@ -34,4 +30,9 @@ func (m *AccountMockRepository) Delete(c context.Context, id string) error {
 func (m *AccountMockRepository) UpdateBalance(ctx context.Context, id string, balance float32) error {
 	args := m.Called(ctx, id, balance)
 	return args.Error(0)
+}
+
+func (m *AccountMockRepository) GetByUserId(c context.Context, id string) ([]account.Account, error) {
+	args := m.Called(c, id)
+	return args.Get(0).([]account.Account), args.Error(1)
 }

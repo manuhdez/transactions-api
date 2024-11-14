@@ -24,17 +24,19 @@ func TestFindAllController(t *testing.T) {
 	e := echo.New()
 	ctx := e.NewContext(req, w)
 
-	t.Run("returns a list of accounts", func(t *testing.T) {
+	t.Run("returns the list of accounts of the user", func(t *testing.T) {
 		accounts := []account.Account{
-			account.New("asd", 0, "EUR"),
-			account.New("qwe", 23, "GBP"),
-			account.New("zxc", 12.5, "USD"),
+			account.NewWithUserID("asd", "123", 0, "EUR"),
+			account.NewWithUserID("qwe", "123", 23, "GBP"),
+			account.NewWithUserID("zxc", "123", 12.5, "USD"),
 		}
 
 		repo := new(mocks.AccountMockRepository)
-		repo.On("FindAll", mock.Anything).Return(accounts, nil)
+		repo.On("GetByUserId", mock.Anything, mock.Anything).Return(accounts, nil)
 
-		s := service.NewFindAllService(repo)
+		ctx.Set("userId", "123")
+
+		s := service.NewFindAccountService(repo)
 		err := NewFindAllAccounts(s).Handle(ctx)
 		assert.NoError(t, err)
 
@@ -49,12 +51,12 @@ func TestFindAllController(t *testing.T) {
 		}(response.Body)
 
 		// Transform account models into json account models and marshal them to get a json string
-		acc := infra.NewJsonAccountList(accounts)
-		expected, err := json.Marshal(acc)
+		expected, err := json.Marshal(findAllAccountsResponse{
+			Accounts: infra.NewJsonAccountList(accounts),
+		})
 		require.NoError(t, err)
 
-		body, err := io.ReadAll(response.Body)
-		require.NoError(t, err)
-		assert.JSONEq(t, string(expected), string(body))
+		body := w.Body.String()
+		assert.JSONEq(t, string(expected), body)
 	})
 }

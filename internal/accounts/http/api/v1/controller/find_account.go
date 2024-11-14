@@ -11,18 +11,16 @@ import (
 )
 
 type FindAccount struct {
-	service service.FindAccountService
+	service service.AccountsFinder
 }
 
-func NewFindAccountController(s service.FindAccountService) FindAccount {
+func NewFindAccountController(s service.AccountsFinder) FindAccount {
 	return FindAccount{s}
 }
 
 func (ctrl FindAccount) Handle(c echo.Context) error {
-	id := c.Param("id")
-
 	ctx := c.Request().Context()
-	acc, err := ctrl.service.Find(ctx, id)
+	acc, err := ctrl.service.FindById(ctx, c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}

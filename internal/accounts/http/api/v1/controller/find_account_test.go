@@ -38,7 +38,8 @@ func (s *testSuite) SetupTest() {
 func (s *testSuite) TestWithExistingAccount() {
 	expected := account.New("123", 33, "EUR")
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(expected, nil)
-	s.controller.Handle(s.ctx)
+	err := s.controller.Handle(s.ctx)
+	assert.NoError(s.T(), err)
 
 	result := s.w.Body.String()
 	assert.Equal(s.T(), http.StatusOK, s.w.Code)
@@ -47,7 +48,8 @@ func (s *testSuite) TestWithExistingAccount() {
 
 func (s *testSuite) TestWithAccountNotFound() {
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(account.Account{}, nil)
-	s.controller.Handle(s.ctx)
+	err := s.controller.Handle(s.ctx)
+	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), http.StatusNotFound, s.w.Code)
 }
 

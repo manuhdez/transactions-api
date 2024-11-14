@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
-	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
+	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 )
 
 type CreateServiceTestSuite struct {
@@ -17,35 +18,37 @@ type CreateServiceTestSuite struct {
 	Repository *mocks.AccountMockRepository
 	Bus        *mocks.EventBus
 	Account    account.Account
+	ctx        context.Context
 }
 
-func (suite *CreateServiceTestSuite) SetupTest() {
-	suite.Repository = new(mocks.AccountMockRepository)
-	suite.Bus = new(mocks.EventBus)
-	suite.Account = account.New("123", 0, "EUR")
+func (s *CreateServiceTestSuite) SetupTest() {
+	s.Repository = new(mocks.AccountMockRepository)
+	s.Bus = new(mocks.EventBus)
+	s.Account = account.NewWithUserID("333", "123", 0, "EUR")
+	s.ctx = context.Background()
 }
 
-func (suite *CreateServiceTestSuite) TestShouldCreateAccount() {
-	suite.Repository.On("Create", suite.Account).Return(nil)
-	suite.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
+func (s *CreateServiceTestSuite) TestShouldCreateAccount() {
+	s.Repository.On("Create", s.Account).Return(nil)
+	s.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
 
-	service := NewCreateService(suite.Repository, suite.Bus)
-	err := service.Create(suite.Account)
+	service := NewCreateService(s.Repository, s.Bus)
+	err := service.Create(s.ctx, s.Account)
 
-	assert.Equal(suite.T(), nil, err)
-	suite.Repository.AssertExpectations(suite.T())
+	assert.Equal(s.T(), nil, err)
+	s.Repository.AssertExpectations(s.T())
 }
 
-func (suite *CreateServiceTestSuite) TestShouldReturnError() {
+func (s *CreateServiceTestSuite) TestShouldReturnError() {
 	expected := errors.New("error creating account")
-	suite.Repository.On("Create", suite.Account).Return(expected)
-	suite.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
+	s.Repository.On("Create", s.Account).Return(expected)
+	s.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
 
-	service := NewCreateService(suite.Repository, suite.Bus)
-	err := service.Create(suite.Account)
+	service := NewCreateService(s.Repository, s.Bus)
+	err := service.Create(s.ctx, s.Account)
 
-	assert.Equal(suite.T(), expected, err)
-	suite.Repository.AssertExpectations(suite.T())
+	assert.ErrorIs(s.T(), err, expected)
+	s.Repository.AssertExpectations(s.T())
 }
 
 func TestCreateService(t *testing.T) {

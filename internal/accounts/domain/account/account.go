@@ -17,6 +17,12 @@ func New(id string, balance float32, currency string) Account {
 	}
 }
 
+func NewWithUserID(id string, userId domain.ID, balance float32, currency string) Account {
+	acc := New(id, balance, currency)
+	acc.UserId = userId
+	return acc
+}
+
 func (a Account) Id() string {
 	return a.id.String()
 }

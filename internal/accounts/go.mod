@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/charmbracelet/log v0.2.1
 	github.com/google/wire v0.5.0
+	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/manuhdez/transactions-api/shared v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.20.5
@@ -26,6 +27,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.22.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect

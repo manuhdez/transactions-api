@@ -2,16 +2,19 @@ package controller
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
@@ -20,38 +23,41 @@ import (
 
 type CreateAccountTestSuite struct {
 	suite.Suite
-	Account    request.CreateAccount
-	Request    *http.Request
-	BadRequest *http.Request
-	Service    service.CreateService
-	Controller CreateAccount
+
+	srv     *echo.Echo
+	w       *httptest.ResponseRecorder
+	repo    *mocks.AccountMockRepository
+	bus     *mocks.EventBus
+	creator service.CreateService
+	ctrl    CreateAccount
 }
 
 func (s *CreateAccountTestSuite) SetupTest() {
-	body := bytes.NewBufferString(`{"id": "123", "balance": 100.0}`)
-	req := httptest.NewRequest(http.MethodPost, "/accounts", body)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	s.Request = req
-	s.BadRequest = httptest.NewRequest(http.MethodPost, "/accounts", nil)
+	s.srv = echo.New()
+	s.srv.Validator = sharedhttp.NewRequestValidator()
+	s.w = httptest.NewRecorder()
 
-	repository := new(mocks.AccountMockRepository)
-	repository.On("Create", mock.Anything).Return(nil)
+	s.repo = new(mocks.AccountMockRepository)
+	s.bus = new(mocks.EventBus)
 
-	bus := new(mocks.EventBus)
-	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
-
-	s.Service = service.NewCreateService(repository, bus)
-	s.Controller = NewCreateAccount(s.Service)
+	s.creator = service.NewCreateService(s.repo, s.bus)
+	s.ctrl = NewCreateAccount(s.creator)
 }
 
 func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {
-	w := httptest.NewRecorder()
-	e := echo.New()
-	ctx := e.NewContext(s.Request, w)
+	body, err := json.Marshal(request.CreateAccount{Id: "123", UserId: "321", Currency: ""})
+	require.NoError(s.T(), err)
+	req := httptest.NewRequest(http.MethodPost, "/accounts", bytes.NewReader(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	ctx := s.srv.NewContext(req, s.w)
+	ctx.Set("userId", "321")
 
-	err := s.Controller.Handle(ctx)
+	s.repo.On("Create", mock.Anything, mock.Anything).Return(nil)
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
+
+	err = s.ctrl.Handle(ctx)
 	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), http.StatusCreated, w.Code)
+	assert.Equal(s.T(), http.StatusCreated, s.w.Code)
 }
 
 func TestCreateAccountController(t *testing.T) {

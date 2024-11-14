@@ -2,7 +2,9 @@ package router
 
 import (
 	"net/http"
+	"os"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -22,6 +24,7 @@ func NewRouter(
 	deleteAccount controller.DeleteAccount,
 ) Router {
 	e := echo.New()
+	e.Validator = sharedhttp.NewRequestValidator()
 
 	// Register global middleware
 	e.Use(middleware.CORS())
@@ -30,6 +33,9 @@ func NewRouter(
 	e.GET("/status", statusHandler)
 
 	api := e.Group("/api")
+	api.Use(echojwt.JWT([]byte(os.Getenv("JWT_SECRET"))))
+	api.Use(sharedhttp.GetUserIdFromContext)
+
 	v1 := api.Group("/v1")
 	{
 		v1.GET("/accounts", findAllAccounts.Handle)

@@ -29,7 +29,7 @@ func (s *CreateServiceTestSuite) SetupTest() {
 }
 
 func (s *CreateServiceTestSuite) TestShouldCreateAccount() {
-	s.Repository.On("Create", s.Account).Return(nil)
+	s.Repository.On("Create", mock.Anything, s.Account).Return(nil)
 	s.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
 
 	service := NewCreateService(s.Repository, s.Bus)
@@ -41,7 +41,7 @@ func (s *CreateServiceTestSuite) TestShouldCreateAccount() {
 
 func (s *CreateServiceTestSuite) TestShouldReturnError() {
 	expected := errors.New("error creating account")
-	s.Repository.On("Create", s.Account).Return(expected)
+	s.Repository.On("Create", mock.Anything, s.Account).Return(expected)
 	s.Bus.On("Publish", context.Background(), mock.Anything).Return(nil)
 
 	service := NewCreateService(s.Repository, s.Bus)

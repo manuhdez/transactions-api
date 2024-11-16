@@ -50,13 +50,13 @@ deps-users:
 build: build-accounts build-transactions build-users
 
 build-accounts:
-	@go build ./internal/accounts/main.go -o ./cmd/accounts
+	@go build -C ./internal/accounts -o cmd/accounts .
 
 build-transactions:
-	@go build ./internal/transactions/main.go -o ./cmd/transactions
+	@go build -C ./internal/transactions -o ./cmd/transactions .
 
 build-users:
-	@go build ./internal/users/main.go -o ./cmd/users
+	@go build -C ./internal/users -o ./cmd/users .
 
 # Deps
 tidy: tidy-accounts tidy-transactions tidy-users tidy-shared

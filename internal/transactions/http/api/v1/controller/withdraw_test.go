@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
@@ -29,10 +30,13 @@ func (s *withDrawSuite) SetupTest() {
 	repository := new(mocks.TransactionMockRepository)
 	repository.On("Withdraw", mock.Anything, mock.Anything).Return(nil)
 
+	accRepo := new(mocks.AccountMockRepository)
+	accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{UserId: "999"}, nil)
+
 	bus := new(mocks.EventBus)
 	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
-	srv := service.NewWithdrawService(repository, bus)
+	srv := service.NewTransactionService(repository, accRepo, bus)
 	s.controller = NewWithdraw(srv)
 	s.recorder = httptest.NewRecorder()
 
@@ -51,6 +55,7 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	ctx := s.server.NewContext(req, s.recorder)
+	ctx.Set("userId", "999")
 	err = s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), 201, s.recorder.Code)

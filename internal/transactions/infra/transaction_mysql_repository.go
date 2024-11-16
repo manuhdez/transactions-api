@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -25,10 +26,12 @@ func (r TransactionMysqlRepository) Withdraw(ctx context.Context, withdraw trans
 	return r.saveTransaction(ctx, withdraw)
 }
 
+// TODO: filter by user id
 func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
 	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions")
 	if err != nil {
-		return []transaction.Transaction{}, err
+		log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", err)
+		return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
 	}
 
 	defer rows.Close()
@@ -36,14 +39,16 @@ func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.
 	var transactions []transaction.Transaction
 	for rows.Next() {
 		var t TransactionMysql
-		if er := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date); er != nil {
-			return []transaction.Transaction{}, er
+		if er := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date, &t.UserId); er != nil {
+			log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", er)
+			return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
 		}
 		transactions = append(transactions, t.ToDomainModel())
 	}
 
 	if err = rows.Err(); err != nil {
-		return []transaction.Transaction{}, err
+		log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", err)
+		return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
 	}
 
 	return transactions, nil
@@ -61,7 +66,7 @@ func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string
 	var tt []transaction.Transaction
 	for rows.Next() {
 		var t TransactionMysql
-		if err := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date); err != nil {
+		if err = rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date, &t.UserId); err != nil {
 			log.Printf("Failed to scan transaction row: %e", err)
 			return []transaction.Transaction{}, err
 		}
@@ -76,19 +81,20 @@ func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string
 	return tt, nil
 }
 
-func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trans transaction.Transaction) error {
+func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trx transaction.Transaction) error {
 	_, err := r.db.ExecContext(
 		ctx,
-		"INSERT INTO transactions (account_id, amount, type, balance, date) VALUES ($1, $2, $3, $4, $5)",
-		trans.AccountId,
-		trans.Amount,
-		trans.Type,
-		trans.Amount,
+		"INSERT INTO transactions (account_id, user_id, amount, type, balance, date) VALUES ($1, $2, $3, $4, $5, $6)",
+		trx.AccountId,
+		trx.UserId,
+		trx.Amount,
+		trx.Type,
+		trx.Amount,
 		time.Now(),
 	)
 
 	if err != nil {
-		log.Printf("Error saving %s transaction: %e", trans.Type, err)
+		log.Printf("Error saving %s transaction: %e", trx.Type, err)
 		return err
 	}
 

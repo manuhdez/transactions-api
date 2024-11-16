@@ -11,15 +11,15 @@ type AccountCreated struct {
 	body []byte
 }
 
-func NewAccountCreated(data []byte) (AccountCreated, error) {
-	body := AccountCreatedBody{string(AccountCreatedType)}
-	b, err := json.Marshal(body)
-	if err != nil {
-		return AccountCreated{}, err
-	}
-
-	return AccountCreated{b}, nil
-}
+//func NewAccountCreated(data []byte) (AccountCreated, error) {
+//	body := AccountCreatedBody{string(AccountCreatedType)}
+//	b, err := json.Marshal(body)
+//	if err != nil {
+//		return AccountCreated{}, err
+//	}
+//
+//	return AccountCreated{b}, nil
+//}
 
 func (a AccountCreated) Type() Type {
 	return AccountCreatedType
@@ -30,7 +30,8 @@ func (a AccountCreated) Body() []byte {
 }
 
 type AccountCreatedBody struct {
-	Id string `json:"id"`
+	Id     string `json:"id"`
+	UserId string `json:"user_id"`
 }
 
 func NewAccountCreatedBody(data []byte) (AccountCreatedBody, error) {

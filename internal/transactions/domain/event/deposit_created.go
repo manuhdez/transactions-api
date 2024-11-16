@@ -1,6 +1,10 @@
 package event
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
+)
 
 type DepositCreated struct {
 	body []byte
@@ -12,8 +16,8 @@ type DepositCreatedBody struct {
 	Amount  float32 `json:"amount"`
 }
 
-func NewDepositCreated(account string, amount float32) DepositCreated {
-	body := DepositCreatedBody{string(DepositCreatedType), account, amount}
+func NewDepositCreated(trx transaction.Transaction) DepositCreated {
+	body := DepositCreatedBody{string(DepositCreatedType), trx.AccountId, trx.Amount}
 	b, _ := json.Marshal(body)
 	return DepositCreated{b}
 }

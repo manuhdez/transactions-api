@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
@@ -21,6 +22,7 @@ import (
 type Suite struct {
 	suite.Suite
 	repository *mocks.TransactionMockRepository
+	accRepo    *mocks.AccountMockRepository
 	bus        *mocks.EventBus
 	controller controller.Deposit
 	recorder   *httptest.ResponseRecorder
@@ -30,10 +32,13 @@ func (s *Suite) SetupTest() {
 	s.repository = new(mocks.TransactionMockRepository)
 	s.repository.On("Deposit", mock.Anything, mock.Anything).Return(nil)
 
+	s.accRepo = new(mocks.AccountMockRepository)
+	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{UserId: "999"}, nil)
+
 	s.bus = new(mocks.EventBus)
 	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
-	s.controller = controller.NewDeposit(service.NewDepositService(s.repository, s.bus))
+	s.controller = controller.NewDeposit(service.NewTransactionService(s.repository, s.accRepo, s.bus))
 	s.recorder = httptest.NewRecorder()
 }
 
@@ -46,6 +51,7 @@ func (s *Suite) TestDepositController_Success() {
 	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ctx := echo.New().NewContext(req, s.recorder)
+	ctx.Set("userId", "999")
 	err = s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
 

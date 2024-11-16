@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 
@@ -13,10 +14,6 @@ import (
 type AccountCreated struct {
 	eventType event.Type
 	service   service.CreateAccount
-}
-
-type accountCreatedBody struct {
-	Id string `json:"body"`
 }
 
 func NewAccountCreated(s service.CreateAccount) AccountCreated {
@@ -31,9 +28,12 @@ func (h AccountCreated) Type() event.Type {
 }
 
 func (h AccountCreated) Handle(ctx context.Context, e event.Event) error {
+	log.Printf("[AccountCreated:Handle][event:%+v]", e)
+
 	data, err := event.NewAccountCreatedBody(e.Body())
 	if err != nil {
-		fmt.Printf("error parsing event body")
+		return fmt.Errorf("[AccountCreated:Handle][err: %w]", err)
 	}
-	return h.service.Create(ctx, account.NewAccount(data.Id))
+
+	return h.service.Create(ctx, account.NewAccount(data.Id, data.UserId))
 }

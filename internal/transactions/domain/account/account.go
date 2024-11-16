@@ -1,9 +1,13 @@
 package account
 
 type Account struct {
-	Id string
+	Id     string
+	UserId string
 }
 
-func NewAccount(id string) Account {
-	return Account{id}
+func NewAccount(id, userId string) Account {
+	return Account{
+		Id:     id,
+		UserId: userId,
+	}
 }

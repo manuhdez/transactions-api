@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,14 +12,16 @@ import (
 )
 
 type Withdraw struct {
-	service service.Withdraw
+	trxService service.TransactionService
 }
 
-func NewWithdraw(s service.Withdraw) Withdraw {
-	return Withdraw{s}
+func NewWithdraw(s service.TransactionService) Withdraw {
+	return Withdraw{trxService: s}
 }
 
 func (ctrl Withdraw) Handle(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var req request.Withdraw
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"msg": "Missing params", "error": err})
@@ -30,8 +31,13 @@ func (ctrl Withdraw) Handle(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 
-	withdraw := transaction.NewTransaction(transaction.Withdrawal, req.Account, req.Amount, req.Currency)
-	if err := ctrl.service.Invoke(context.Background(), withdraw); err != nil {
+	userId := c.Get("userId").(string)
+	if err := ctrl.trxService.Withdraw(ctx, transaction.Transaction{
+		Type:      transaction.Withdrawal,
+		AccountId: req.Account,
+		Amount:    req.Amount,
+		UserId:    userId,
+	}); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"msg": "could not create withdraw", "error": err})
 	}
 

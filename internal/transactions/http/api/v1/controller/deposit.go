@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,24 +12,30 @@ import (
 )
 
 type Deposit struct {
-	service service.Deposit
+	trxService service.TransactionService
 }
 
-func NewDeposit(s service.Deposit) Deposit {
-	return Deposit{s}
+func NewDeposit(s service.TransactionService) Deposit {
+	return Deposit{trxService: s}
 }
 
 func (ctrl Deposit) Handle(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var req request.Deposit
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
 
-	deposit := transaction.NewTransaction(transaction.Deposit, req.Account, req.Amount, req.Currency)
-
-	ctx := c.Request().Context()
-	if err := ctrl.service.Invoke(ctx, deposit); err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
+	userId := c.Get("userId").(string)
+	if err := ctrl.trxService.Deposit(ctx, transaction.Transaction{
+		Type:      transaction.Deposit,
+		AccountId: req.Account,
+		Amount:    req.Amount,
+		UserId:    userId,
+	}); err != nil {
+		log.Printf("[Deposit:Handle]%s", err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"message": "could not deposit amount into the account"})
 	}
 
 	return c.JSON(http.StatusCreated, echo.Map{"message": "Deposit successfully created"})

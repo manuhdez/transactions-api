@@ -2,7 +2,9 @@ package router
 
 import (
 	"net/http"
+	"os"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,6 +34,9 @@ func NewRouter(
 	api := e.Group("/api")
 	v1 := api.Group("/v1")
 	{
+		v1.Use(echojwt.JWT([]byte(os.Getenv("JWT_SECRET"))))
+		v1.Use(sharedhttp.GetUserIdFromContext)
+
 		v1.POST("/deposit", depositController.Handle)
 		v1.POST("/withdraw", withdrawController.Handle)
 		v1.GET("/transactions", findAllTransactionsController.Handle)

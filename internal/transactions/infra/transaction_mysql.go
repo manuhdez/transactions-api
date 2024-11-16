@@ -7,6 +7,7 @@ import (
 type TransactionMysql struct {
 	Id        int              `mysql:"id"`
 	AccountId string           `mysql:"account_id"`
+	UserId    string           `mysql:"user_id"`
 	Amount    float32          `mysql:"amount"`
 	Balance   float32          `mysql:"balance"`
 	Type      transaction.Type `mysql:"type"`
@@ -14,5 +15,5 @@ type TransactionMysql struct {
 }
 
 func (t TransactionMysql) ToDomainModel() transaction.Transaction {
-	return transaction.NewTransaction(t.Type, t.AccountId, t.Amount, "EUR")
+	return transaction.NewTransaction(t.Type, t.AccountId, t.UserId, t.Amount)
 }

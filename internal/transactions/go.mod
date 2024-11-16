@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/wire v0.5.0
+	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/manuhdez/transactions-api/shared v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.20.5

@@ -12,6 +12,10 @@ type AccountMysql struct {
 	Currency string  `mysql:"currency"`
 }
 
+func (a AccountMysql) TableName() string {
+	return "accounts"
+}
+
 func (a AccountMysql) parseToDomainModel() account.Account {
 	return account.NewWithUserID(a.Id, domain.NewID(a.UserId), a.Balance, a.Currency)
 }

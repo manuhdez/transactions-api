@@ -10,6 +10,10 @@ type UserMysql struct {
 	Password  string `mysql:"password"`
 }
 
+func (u UserMysql) TableName() string {
+	return "users"
+}
+
 func (u UserMysql) ToDomainModel() user.User {
 	return user.New(u.Id, u.FirstName, u.LastName, u.Email, u.Password)
 }

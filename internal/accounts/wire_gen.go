@@ -20,7 +20,7 @@ import (
 
 func NewApp() container.App {
 	dbConfig := config.NewDBConfig()
-	db := config.NewDBConnection(dbConfig)
+	db := config.NewGormDBConnection(dbConfig)
 	accountMysqlRepository := infra.NewAccountMysqlRepository(db)
 	accountsFinder := service.NewFindAccountService(accountMysqlRepository)
 	findAllAccounts := controller.NewFindAllAccounts(accountsFinder)

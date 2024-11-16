@@ -20,7 +20,7 @@ func NewCreateService(repository account.Repository, bus event.Bus) CreateServic
 
 // Create creates a new account, store it in database and publish a domain event
 func (s CreateService) Create(ctx context.Context, acc account.Account) error {
-	if err := s.repository.Create(acc); err != nil {
+	if err := s.repository.Create(ctx, acc); err != nil {
 		return fmt.Errorf("[CreateService:Create][err: %w]", err)
 	}
 

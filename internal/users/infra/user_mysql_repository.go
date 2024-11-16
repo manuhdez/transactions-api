@@ -2,84 +2,72 @@ package infra
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"log"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/manuhdez/transactions-api/internal/users/domain/user"
 	"github.com/manuhdez/transactions-api/internal/users/infra/metrics"
 )
 
 type UserMysqlRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewUserMysqlRepository(db *sql.DB) UserMysqlRepository {
-	return UserMysqlRepository{db: db}
+func NewUserMysqlRepository(db *gorm.DB) UserMysqlRepository {
+	return UserMysqlRepository{
+		db: db,
+	}
 }
 
-func (repo UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
+// All retrieves a list with all users
+func (r UserMysqlRepository) All(ctx context.Context) ([]user.User, error) {
 	defer metrics.TrackDBQueryDuration(time.Now())
 
-	rows, err := repo.db.QueryContext(ctx, "select * from users")
-	if err != nil {
-		log.Printf("Error querying users: %e", err)
-		metrics.TrackDBErrorAdd()
-		return nil, err
+	var usersSql []UserMysql
+	if err := r.db.WithContext(ctx).Find(&usersSql).Error; err != nil {
+		return nil, fmt.Errorf("[UserMysqlRepository:All][err:%w]", err)
 	}
 
-	var users []user.User
-	for rows.Next() {
-		var u UserMysql
-		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
-		if err != nil {
-			log.Printf("Error scanning row: %e", err)
-			metrics.TrackDBErrorAdd()
-			return nil, err
-		}
-		users = append(users, u.ToDomainModel())
+	users := make([]user.User, len(usersSql))
+	for i := range usersSql {
+		users[i] = usersSql[i].ToDomainModel()
 	}
 
 	return users, nil
 }
 
-func (repo UserMysqlRepository) Save(ctx context.Context, u user.User) error {
+// Save creates a new user
+func (r UserMysqlRepository) Save(ctx context.Context, u user.User) error {
 	defer metrics.TrackDBQueryDuration(time.Now())
 
-	if _, err := repo.db.ExecContext(
-		ctx,
-		"insert into users (id, first_name, last_name, email, password) values ($1, $2, $3, $4, $5);",
-		u.Id, u.FirstName, u.LastName, u.Email, u.Password,
-	); err != nil {
-		er := fmt.Errorf("[UserMysqlRepository:Save][err: %w]", err)
-		log.Println(er)
+	if err := r.db.WithContext(ctx).Create(&UserMysql{
+		Id:        u.Id,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Email:     u.Email,
+		Password:  u.Password,
+	}).Error; err != nil {
 		metrics.TrackDBErrorAdd()
-		return err
+		return fmt.Errorf("[UserMysqlRepository:Save][err: %w]", err)
 	}
 
 	return nil
 }
 
-func (repo UserMysqlRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
+// FindByEmail search a user by email
+func (r UserMysqlRepository) FindByEmail(ctx context.Context, email string) (user.User, error) {
 	defer metrics.TrackDBQueryDuration(time.Now())
 
-	row := repo.db.QueryRowContext(ctx, "select * from users where email = $1", email)
-	if row.Err() != nil {
-		er := fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", row.Err())
-		log.Println(er)
-		metrics.TrackDBErrorAdd()
-		return user.User{}, er
-	}
-
 	var u UserMysql
-	err := row.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email, &u.Password)
-	if err != nil {
-		er := fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", err)
-		log.Println(er)
+	if err := r.db.
+		WithContext(ctx).
+		Where("email = ?", email).
+		First(&u).Error; err != nil {
 		metrics.TrackDBErrorAdd()
-		return user.User{}, er
+		return user.User{}, fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", err)
 	}
 
-	return user.New(u.Id, u.FirstName, u.LastName, u.Email, u.Password), nil
+	return u.ToDomainModel(), nil
 }

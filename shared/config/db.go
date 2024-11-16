@@ -1,12 +1,10 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
-	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,24 +34,6 @@ func NewDBConfig() DBConfig {
 	}
 
 	return conf
-}
-
-func NewDBConnection(c DBConfig) *sql.DB {
-	log.Printf("[NewDBConnection][msg: connecting database %s]", c.Schema)
-
-	dbUri := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s",
-		c.Host, c.Port, c.User, c.Password, c.Database, c.Schema,
-	)
-
-	db, err := sql.Open("postgres", dbUri)
-	if err != nil {
-		panic(err)
-	} else {
-		log.Printf("[NewDBConnection][msg: connected database %s", c.Schema)
-	}
-
-	return db
 }
 
 func NewGormDBConnection(c DBConfig) *gorm.DB {

@@ -20,7 +20,7 @@ import (
 func Init() container.App {
 	healthCheck := controller.NewHealthCheck()
 	dbConfig := config.NewDBConfig()
-	db := config.NewDBConnection(dbConfig)
+	db := config.NewGormDBConnection(dbConfig)
 	userMysqlRepository := infra.NewUserMysqlRepository(db)
 	bcryptHashService := infra.NewBcryptService()
 	rabbitEventBus := infra.NewRabbitEventBus()

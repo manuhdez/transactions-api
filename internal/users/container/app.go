@@ -27,7 +27,7 @@ func NewApp(server api.Router, eventBus event.Bus) App {
 
 var Databases = wire.NewSet(
 	config.NewDBConfig,
-	config.NewDBConnection,
+	config.NewGormDBConnection,
 )
 
 var Buses = wire.NewSet(

@@ -12,8 +12,8 @@ type AccountMockRepository struct {
 	mock.Mock
 }
 
-func (m *AccountMockRepository) Create(a account.Account) error {
-	args := m.Called(a)
+func (m *AccountMockRepository) Create(ctx context.Context, a account.Account) error {
+	args := m.Called(ctx, a)
 	return args.Error(0)
 }
 

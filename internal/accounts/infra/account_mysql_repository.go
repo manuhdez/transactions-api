@@ -2,81 +2,86 @@ package infra
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 
+	"gorm.io/gorm"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
+	"github.com/manuhdez/transactions-api/internal/users/infra/metrics"
 )
 
 type AccountMysqlRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewAccountMysqlRepository(db *sql.DB) AccountMysqlRepository {
-	return AccountMysqlRepository{db}
+func NewAccountMysqlRepository(db *gorm.DB) AccountMysqlRepository {
+	return AccountMysqlRepository{db: db}
 }
 
-func (r AccountMysqlRepository) Create(a account.Account) error {
-	_, err := r.db.Exec("INSERT INTO accounts (id, user_id, balance, currency) VALUES ($1, $2, $3, $4)", a.Id(), a.UserId.String(), a.Balance(), a.Currency())
-	return err
+// Create saves a new account into db
+func (r AccountMysqlRepository) Create(ctx context.Context, a account.Account) error {
+	log.Printf("[AccountMysqlRepository:Create][account:%+v]", a)
+
+	if err := r.db.WithContext(ctx).Create(&AccountMysql{
+		Id:       a.Id(),
+		UserId:   a.UserId.String(),
+		Balance:  a.Balance(),
+		Currency: a.Currency(),
+	}).Error; err != nil {
+		metrics.TrackDBErrorAdd()
+		return fmt.Errorf("[AccountMysql:Create][err: %w]", err)
+	}
+
+	return nil
 }
 
+// Find finds an account by id
 func (r AccountMysqlRepository) Find(ctx context.Context, id string) (account.Account, error) {
-	row := r.db.QueryRowContext(ctx, "select id, user_id, balance, currency from accounts where id=$1", id)
+	log.Printf("[AccountMysqlRepository:Find][accountId:%s]", id)
 
-	var a AccountMysql
-	err := row.Scan(&a.Id, &a.UserId, &a.Balance, &a.Currency)
-
-	// this check was necessary to avoid nil pointer error
-	// TODO: solve nil pointer error and remove this check
-	if (a != AccountMysql{}) {
-		return a.parseToDomainModel(), nil
+	var acc AccountMysql
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&acc).Error; err != nil {
+		metrics.TrackDBErrorAdd()
+		return account.Account{}, fmt.Errorf("[AccountMysqlRepository:Find][err: %w]", err)
 	}
 
-	// If the account the user is looking for does not exist, it should not throw an error
-	if errors.Is(err, sql.ErrNoRows) {
-		return account.Account{}, nil
-	}
-
-	if err != nil {
-		return account.Account{}, err
-	}
-
-	return a.parseToDomainModel(), nil
+	return acc.parseToDomainModel(), nil
 }
 
 // GetByUserId returns the list of accounts for a given user
 func (r AccountMysqlRepository) GetByUserId(ctx context.Context, userId string) ([]account.Account, error) {
-	var accounts []AccountMysql
-	rows, err := r.db.QueryContext(ctx, "select id, user_id, balance, currency from accounts where user_id=$1", userId)
-	if err != nil {
-		log.Printf("[AccountMysqlRepository:GetByUserId][err: %s]", err)
-		return nil, fmt.Errorf("[AccountMysqlRepository:GetByUserId][err: database error]")
-	}
+	log.Printf("[AccountMysqlRepository:GetByUserId][userId:%s]", userId)
 
-	defer rows.Close()
-	for rows.Next() {
-		var acc AccountMysql
-		if err = rows.Scan(&acc.Id, &acc.UserId, &acc.Balance, &acc.Currency); err != nil {
-			return nil, err
-		}
-		accounts = append(accounts, acc)
-	}
-	if err = rows.Err(); err != nil {
-		return []account.Account{}, nil
+	var accounts []AccountMysql
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userId).Find(&accounts).Error; err != nil {
+		metrics.TrackDBErrorAdd()
+		return nil, fmt.Errorf("[AccountMysqlRepository:GetByUserId][err: %w]", err)
 	}
 
 	return parseToDomainModels(accounts), nil
 }
 
+// Delete deletes an account by id
 func (r AccountMysqlRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.ExecContext(ctx, "delete from accounts where id=$1", id)
-	return err
+	log.Printf("[AccountMysqlRepository:Delete][accountId:%s]", id)
+
+	if err := r.db.WithContext(ctx).Delete(&AccountMysql{Id: id}).Error; err != nil {
+		metrics.TrackDBErrorAdd()
+		return fmt.Errorf("[AccountMysqlRepository:Delete][err: %w]", err)
+	}
+
+	return nil
 }
 
-func (r AccountMysqlRepository) UpdateBalance(ctx context.Context, id string, newBalance float32) error {
-	_, err := r.db.ExecContext(ctx, "update accounts set balance = $1 where id = $2", newBalance, id)
-	return err
+// UpdateBalance updates the balance of an account
+func (r AccountMysqlRepository) UpdateBalance(ctx context.Context, id string, balance float32) error {
+	log.Printf("[AccountMysqlRepository:UpdateBalance][accountId:%s][balance:%f]", id, balance)
+
+	if err := r.db.WithContext(ctx).Where("id = ?", id).Update("balance", balance).Error; err != nil {
+		metrics.TrackDBErrorAdd()
+		return fmt.Errorf("[AccountMysqlRepository:UpdateBalance][err: %w]", err)
+	}
+
+	return nil
 }

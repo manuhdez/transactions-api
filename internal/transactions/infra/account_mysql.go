@@ -7,6 +7,10 @@ type AccountMysql struct {
 	UserId string `mysql:"user_id"`
 }
 
+func (a AccountMysql) TableName() string {
+	return "accounts"
+}
+
 // ToDomainModel converts a AccountMysql to a domain account.Account
 func (a AccountMysql) ToDomainModel() account.Account {
 	return account.NewAccount(a.Id, a.UserId)

@@ -2,47 +2,45 @@ package infra
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
+
+	"gorm.io/gorm"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 )
 
 type AccountMysqlRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewAccountMysqlRepository(db *sql.DB) AccountMysqlRepository {
+func NewAccountMysqlRepository(db *gorm.DB) AccountMysqlRepository {
 	return AccountMysqlRepository{db: db}
 }
 
-func (repo AccountMysqlRepository) Save(ctx context.Context, account account.Account) error {
-	_, err := repo.db.ExecContext(
-		ctx,
-		"INSERT INTO accounts (id, user_id) VALUES ($1, $2)",
-		account.Id, account.UserId,
-	)
+// Save saves a new account
+func (r AccountMysqlRepository) Save(ctx context.Context, acc account.Account) error {
+	log.Printf("[AccountMysqlRepository:Save][account:%+v]", acc)
 
-	if err != nil {
-		log.Printf("Error while saving new account")
-		return err
+	res := r.db.WithContext(ctx).Create(&AccountMysql{
+		Id:     acc.Id,
+		UserId: acc.UserId,
+	})
+	if res.Error != nil {
+		return fmt.Errorf("[AccountMysqlRepository:Save][err: %w]", res.Error)
 	}
+
 	return nil
 }
 
 // FindById returns an account found by id
-func (repo AccountMysqlRepository) FindById(ctx context.Context, id string) (account.Account, error) {
+func (r AccountMysqlRepository) FindById(ctx context.Context, id string) (account.Account, error) {
 	log.Printf("[AccountMysqlRepository:FindById][id:%s]", id)
 
 	var acc AccountMysql
-	err := repo.db.
-		QueryRowContext(ctx, "select id, user_id from accounts where id=$1", id).
-		Scan(&acc.Id, &acc.UserId)
-
-	if err != nil {
-		log.Printf("[AccountMysqlRepository:FindById][id:%s][err:%s]", id, err)
-		return account.Account{}, fmt.Errorf("[AccountMysqlRepository:FindById][id:%s][err: database error]", id)
+	res := r.db.WithContext(ctx).Model(&AccountMysql{}).Where("id = ?", id).First(&acc)
+	if res.Error != nil {
+		return account.Account{}, fmt.Errorf("[AccountMysqlRepository:FindById][id:%s][err:%w]", id, res.Error)
 	}
 
 	return acc.ToDomainModel(), nil

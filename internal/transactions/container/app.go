@@ -17,6 +17,7 @@ import (
 var Databases = wire.NewSet(
 	config.NewDBConfig,
 	config.NewDBConnection,
+	config.NewGormDBConnection,
 )
 
 var Repositories = wire.NewSet(

@@ -2,100 +2,102 @@ package infra
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
 
 type TransactionMysqlRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewTransactionMysqlRepository(db *sql.DB) TransactionMysqlRepository {
-	return TransactionMysqlRepository{db: db}
+func NewTransactionMysqlRepository(db *gorm.DB) TransactionMysqlRepository {
+	return TransactionMysqlRepository{
+		db: db,
+	}
 }
 
-func (r TransactionMysqlRepository) Deposit(ctx context.Context, deposit transaction.Transaction) error {
-	return r.saveTransaction(ctx, deposit)
+// Deposit saves a deposit transaction
+func (r TransactionMysqlRepository) Deposit(ctx context.Context, trx transaction.Transaction) error {
+	log.Printf("[TransactionMysqlRepository:Deposit][trx:%+v]", trx)
+	if err := r.saveTransaction(ctx, trx); err != nil {
+		return fmt.Errorf("[TransactionMysqlRepository:Deposit]%w", err)
+	}
+	return nil
 }
 
-func (r TransactionMysqlRepository) Withdraw(ctx context.Context, withdraw transaction.Transaction) error {
-	return r.saveTransaction(ctx, withdraw)
+// Withdraw saves a withdraw transaction
+func (r TransactionMysqlRepository) Withdraw(ctx context.Context, trx transaction.Transaction) error {
+	log.Printf("[TransactionMysqlRepository:Withdraw][trx:%+v]", trx)
+	if err := r.saveTransaction(ctx, trx); err != nil {
+		return fmt.Errorf("[TransactionMysqlRepository:Withdraw]%w", err)
+	}
+	return nil
 }
 
+// FindAll retrieves a list with all transactions
 // TODO: filter by user id
 func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions")
-	if err != nil {
-		log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", err)
-		return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
+	log.Printf("[TransactionMysqlRepository:FindAll]")
+
+	var trxList []TransactionMysql
+	res := r.db.
+		WithContext(ctx).
+		Model(&TransactionMysql{}).
+		Find(&trxList)
+	if res.Error != nil {
+		log.Printf("[TransactionMysqlRepository:FindAll][gorm][err:%s]", res.Error)
+		return nil, fmt.Errorf("[TransactionMysqlRepository:FindAll][gorm][err:%w]", res.Error)
 	}
 
-	defer rows.Close()
-
-	var transactions []transaction.Transaction
-	for rows.Next() {
-		var t TransactionMysql
-		if er := rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date, &t.UserId); er != nil {
-			log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", er)
-			return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
-		}
-		transactions = append(transactions, t.ToDomainModel())
-	}
-
-	if err = rows.Err(); err != nil {
-		log.Printf("[TransactionMysqlRepository:FindAll][err: %s]", err)
-		return []transaction.Transaction{}, fmt.Errorf("[TransactionMysqlRepository:FindAll][err: database error]")
+	transactions := make([]transaction.Transaction, len(trxList))
+	for i := range trxList {
+		transactions[i] = trxList[i].ToDomainModel()
 	}
 
 	return transactions, nil
 }
 
+// FindByAccount retrieves the transaction list from a given account
 func (r TransactionMysqlRepository) FindByAccount(ctx context.Context, id string) ([]transaction.Transaction, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT * FROM transactions WHERE account_id = $1", id)
-	if err != nil {
-		log.Printf("Query failed: %e", err)
-		return []transaction.Transaction{}, err
+	log.Printf("[TransactionMysqlRepository:FindByAccount][accountId:%s]", id)
+
+	var trxSQL []TransactionMysql
+	res := r.db.
+		WithContext(ctx).
+		Model(&TransactionMysql{}).
+		Where("account_id = ?", id).
+		Find(&trxSQL)
+
+	if res.Error != nil {
+		log.Printf("[TransactionMysqlRepository:FindByAccount][accountId:%s][err:%s]", id, res.Error)
+		return nil, fmt.Errorf("[TransactionMysqlRepository:FindByAccount][accountId:%s][err: database error]", id)
 	}
 
-	defer rows.Close()
-
-	var tt []transaction.Transaction
-	for rows.Next() {
-		var t TransactionMysql
-		if err = rows.Scan(&t.Id, &t.AccountId, &t.Amount, &t.Balance, &t.Type, &t.Date, &t.UserId); err != nil {
-			log.Printf("Failed to scan transaction row: %e", err)
-			return []transaction.Transaction{}, err
-		}
-		tt = append(tt, t.ToDomainModel())
+	transactions := make([]transaction.Transaction, len(trxSQL))
+	for i := range trxSQL {
+		transactions[i] = trxSQL[i].ToDomainModel()
 	}
 
-	if err = rows.Err(); err != nil {
-		log.Printf("Error scanning rows: %e", err)
-		return []transaction.Transaction{}, err
-	}
-
-	return tt, nil
+	return transactions, nil
 }
 
+// saveTransaction saves a transaction in the database
 func (r TransactionMysqlRepository) saveTransaction(ctx context.Context, trx transaction.Transaction) error {
-	_, err := r.db.ExecContext(
-		ctx,
-		"INSERT INTO transactions (account_id, user_id, amount, type, balance, date) VALUES ($1, $2, $3, $4, $5, $6)",
-		trx.AccountId,
-		trx.UserId,
-		trx.Amount,
-		trx.Type,
-		trx.Amount,
-		time.Now(),
-	)
-
-	if err != nil {
-		log.Printf("Error saving %s transaction: %e", trx.Type, err)
-		return err
+	res := r.db.WithContext(ctx).Create(&TransactionMysql{
+		AccountId: trx.AccountId,
+		UserId:    trx.UserId,
+		Amount:    trx.Amount,
+		Balance:   trx.Amount, // TODO: calculate balance correctly
+		Type:      trx.Type,
+		Date:      time.Now(),
+	})
+	if res.Error != nil {
+		return fmt.Errorf("[saveTransaction][err: %w]", res.Error)
 	}
 
 	return nil

@@ -44,10 +44,22 @@ deps-users:
 	cd - && \
 	make tidy-users
 
-# go commands
-#
+### go commands
+
+# Build
+build: build-accounts build-transactions build-users
+
+build-accounts:
+	@go build ./internal/accounts/main.go -o ./cmd/accounts
+
+build-transactions:
+	@go build ./internal/transactions/main.go -o ./cmd/transactions
+
+build-users:
+	@go build ./internal/users/main.go -o ./cmd/users
+
 # Deps
-tidy: tidy-accounts tidy-transactions tidy-users
+tidy: tidy-accounts tidy-transactions tidy-users tidy-shared
 
 tidy-accounts:
 	@cd internal/accounts && go mod tidy && cd -
@@ -57,6 +69,9 @@ tidy-transactions:
 
 tidy-users:
 	@cd internal/users && go mod tidy && cd -
+
+tidy-shared:
+	@cd shared && go mod tidy && cd -
 
 # Testing
 test: test-accounts test-transactions test-users
@@ -74,7 +89,7 @@ test-users:
 	@gotestsum --format-icons hivis ./internal/users/...
 
 # Code linting
-lint: lint-accounts lint-transactions
+lint: lint-accounts lint-transactions lint-users lint-shared
 
 lint-accounts:
 	@go vet ./internal/accounts/...
@@ -82,9 +97,14 @@ lint-accounts:
 lint-transactions:
 	@go vet ./internal/transactions/...
 
+lint-users:
+	@go vet ./internal/users/...
+
+lint-shared:
+	@go vet ./shared/...
+
 # Database commands
 #
-
 db-status:
 	@echo "Accounts service migrations"
 	@docker exec transactions-api-accounts-1 goose -dir "db/migrations" status

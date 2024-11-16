@@ -47,15 +47,15 @@ deps-users:
 ### go commands
 
 # Build
-build: build-accounts build-transactions build-users
+go-build: go-build-accounts go-build-transactions go-build-users
 
-build-accounts:
+go-build-accounts:
 	@go build -C ./internal/accounts -o cmd/accounts .
 
-build-transactions:
+go-build-transactions:
 	@go build -C ./internal/transactions -o ./cmd/transactions .
 
-build-users:
+go-build-users:
 	@go build -C ./internal/users -o ./cmd/users .
 
 # Deps

@@ -45,6 +45,7 @@ services:
         paths:
           - /api/v1/deposit
           - /api/v1/withdraw
+          - /api/v1/transfer
 
   - name: users-service
     url: http://host.docker.internal:8083

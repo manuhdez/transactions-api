@@ -78,7 +78,7 @@ func (r AccountMysqlRepository) Delete(ctx context.Context, id string) error {
 func (r AccountMysqlRepository) UpdateBalance(ctx context.Context, id string, balance float32) error {
 	log.Printf("[AccountMysqlRepository:UpdateBalance][accountId:%s][balance:%f]", id, balance)
 
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Update("balance", balance).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&AccountMysql{}).Where("id = ?", id).Update("balance", balance).Error; err != nil {
 		metrics.TrackDBErrorAdd()
 		return fmt.Errorf("[AccountMysqlRepository:UpdateBalance][err: %w]", err)
 	}

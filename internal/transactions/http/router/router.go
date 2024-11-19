@@ -21,10 +21,13 @@ type Router struct {
 func NewRouter(
 	depositController controller.Deposit,
 	withdrawController controller.Withdraw,
+	transferController controller.Transfer,
 	findAllTransactionsController controller.FindAllTransactions,
 	findAccountTransactions controller.FindAccountTransactions,
 ) Router {
 	e := echo.New()
+	e.Validator = sharedhttp.NewRequestValidator()
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
@@ -39,6 +42,7 @@ func NewRouter(
 
 		v1.POST("/deposit", depositController.Handle)
 		v1.POST("/withdraw", withdrawController.Handle)
+		v1.POST("/transfer", transferController.Handle)
 		v1.GET("/transactions", findAllTransactionsController.Handle)
 		v1.GET("/transactions/:id", findAccountTransactions.Handle)
 	}

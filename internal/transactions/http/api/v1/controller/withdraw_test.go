@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bytes"
@@ -12,8 +12,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
@@ -21,32 +22,33 @@ import (
 
 type withDrawSuite struct {
 	suite.Suite
-	controller Withdraw
+
+	service    *mocks.Transactioner
+	bus        *mocks.EventBus
+	controller controller.Withdraw
 	recorder   *httptest.ResponseRecorder
 	server     *echo.Echo
 }
 
 func (s *withDrawSuite) SetupTest() {
-	repository := new(mocks.TransactionMockRepository)
-	repository.On("Withdraw", mock.Anything, mock.Anything).Return(nil)
-
-	accRepo := new(mocks.AccountMockRepository)
-	accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{UserId: "999"}, nil)
-
-	bus := new(mocks.EventBus)
-	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
-
-	srv := service.NewTransactionService(repository, accRepo, bus)
-	s.controller = NewWithdraw(srv)
-	s.recorder = httptest.NewRecorder()
+	s.service = new(mocks.Transactioner)
+	s.bus = new(mocks.EventBus)
+	s.controller = controller.NewWithdraw(s.service, s.bus)
 
 	e := echo.New()
 	e.Validator = sharedhttp.NewRequestValidator()
 	s.server = e
+	s.recorder = httptest.NewRecorder()
+}
+
+func (s *withDrawSuite) assertMocks() {
+	s.service.AssertExpectations(s.T())
+	s.bus.AssertExpectations(s.T())
 }
 
 func (s *withDrawSuite) TestWithdrawController_Success() {
-	body, err := json.Marshal(request.Withdraw{Account: "112", Amount: 125, Currency: "EUR"})
+	trx := transaction.NewWithdraw("1", "999", 125)
+	body, err := json.Marshal(request.Withdraw{Account: trx.AccountId, Amount: trx.Amount, Currency: "EUR"})
 	if err != nil {
 		s.T().Fatalf("Error marshaling json: %v", err)
 	}
@@ -54,11 +56,16 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
+	s.service.On("Withdraw", mock.Anything, trx).Return(nil).Once()
+	s.service.On("PullEvents").Return([]event.Event{event.NewWithdrawCreated(trx)}).Once()
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
+
 	ctx := s.server.NewContext(req, s.recorder)
 	ctx.Set("userId", "999")
 	err = s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), 201, s.recorder.Code)
+	s.assertMocks()
 }
 
 func (s *withDrawSuite) TestWithdrawController_BadRequest() {
@@ -72,6 +79,7 @@ func (s *withDrawSuite) TestWithdrawController_BadRequest() {
 	ctx := s.server.NewContext(req, s.recorder)
 	err = s.controller.Handle(ctx)
 	assert.Equal(s.T(), 400, s.recorder.Code)
+	s.assertMocks()
 }
 
 func TestWithdrawController(t *testing.T) {

@@ -3,6 +3,8 @@ package container
 import (
 	"github.com/google/wire"
 
+	"github.com/manuhdez/transactions-api/shared/config"
+
 	"github.com/manuhdez/transactions-api/internal/transactions/app/handler"
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
@@ -11,7 +13,6 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/router"
 	"github.com/manuhdez/transactions-api/internal/transactions/infra"
-	"github.com/manuhdez/transactions-api/shared/config"
 )
 
 var Databases = wire.NewSet(
@@ -28,6 +29,9 @@ var Repositories = wire.NewSet(
 var Services = wire.NewSet(
 	service.NewFindAllTransactionsService,
 	service.NewCreateAccountService,
+	wire.Bind(new(service.Depositer), new(service.TransactionService)),
+	wire.Bind(new(service.Withdrawer), new(service.TransactionService)),
+	wire.Bind(new(service.Transferer), new(service.TransactionService)),
 	service.NewTransactionService,
 )
 
@@ -36,6 +40,7 @@ var Controllers = wire.NewSet(
 	controller.NewWithdraw,
 	controller.NewFindAllTransactions,
 	controller.NewFindAccountTransactions,
+	controller.NewTransferController,
 )
 
 var EventHandlers = wire.NewSet(

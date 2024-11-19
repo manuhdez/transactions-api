@@ -27,6 +27,7 @@ func NewRouter(
 	getAllUsers controller.GetAllUsers,
 ) Router {
 	e := echo.New()
+	e.Validator = sharedhttp.NewRequestValidator()
 
 	// middlewares
 	e.Use(middleware.Logger())

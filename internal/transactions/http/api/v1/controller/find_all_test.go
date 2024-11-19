@@ -1,19 +1,17 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
@@ -21,61 +19,60 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 )
 
+var userId = "33"
+
+var (
+	errFetchingTransactions = errors.New("error fetching transactions")
+)
+
 type testSuite struct {
 	suite.Suite
-	repository *mocks.TransactionMockRepository
+	repository *mocks.TransactionRepository
 	controller FindAllTransactions
 	ctx        *gin.Context
-	recorder   *httptest.ResponseRecorder
 }
 
 func (s *testSuite) SetupTest() {
-	s.repository = new(mocks.TransactionMockRepository)
-
-	s.controller = NewFindAllTransactions(service.NewFindAllTransactionsService(s.repository))
-	s.recorder = httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(s.recorder)
-	s.ctx = ctx
+	s.repository = new(mocks.TransactionRepository)
+	retriever := service.NewTransactionsRetriever(s.repository)
+	s.controller = NewFindAllTransactions(retriever)
 }
 
 func (s *testSuite) TestFindAllSuccess() {
-	expected := http.StatusOK
+	transactions := []transaction.Transaction{
+		transaction.NewDeposit("1", userId, 100),
+		transaction.NewWithdraw("1", userId, 125.44),
+		transaction.NewDeposit("22", userId, 250),
+	}
 
-	s.repository.On("FindAll", mock.Anything, mock.Anything).Return(
-		[]transaction.Transaction{{Type: transaction.Withdrawal, Amount: 125.44, AccountId: "22"}},
-		nil,
-	)
+	s.repository.On("All", mock.Anything, userId).Return(transactions, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
-	ctx := echo.New().NewContext(req, s.recorder)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	ctx := echo.New().NewContext(req, w)
+	ctx.Set("userId", userId)
+
 	err := s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), http.StatusOK, w.Code)
 
-	if s.recorder.Code != expected {
-		s.T().Errorf("Expected status code %d, got %d", expected, s.recorder.Code)
-	}
-
-	body, err := io.ReadAll(s.recorder.Body)
-	if err != nil {
-		s.T().Errorf("io.ReadAll(Body): Unable to read the response body. \n %e", err)
-	}
-
-	got := strings.Contains(string(body), "Currency")
-	assert.Equal(s.T(), got, false, fmt.Sprintf("body: %s \nShould not contain 'currency' field", string(body)))
+	res, err := json.Marshal(findAllTransactionsResponse{Transactions: transactions})
+	require.NoError(s.T(), err)
+	assert.JSONEq(s.T(), string(res), w.Body.String())
 }
 
 func (s *testSuite) TestFindAllError() {
-	expected := http.StatusInternalServerError
-	s.repository.On("FindAll", mock.Anything, mock.Anything).Return([]transaction.Transaction{}, errors.New("there was an error"))
-	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
-	ctx := echo.New().NewContext(req, s.recorder)
+	s.repository.On("All", mock.Anything, userId).Return(nil, errFetchingTransactions)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	ctx := echo.New().NewContext(req, w)
+	ctx.Set("userId", userId)
+
 	err := s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), http.StatusInternalServerError, w.Code)
 
-	if s.recorder.Code != expected {
-		s.T().Errorf("Expected status code %d, got %d", expected, s.recorder.Code)
-	}
 }
 
 func TestFindAllTransactionsController(t *testing.T) {

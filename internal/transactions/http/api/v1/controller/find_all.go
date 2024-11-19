@@ -12,25 +12,27 @@ import (
 
 type findAllTransactionsResponse struct {
 	Transactions []transaction.Transaction `json:"transactions"`
+	Error        string                    `json:"error,omitempty"`
 }
 
 type FindAllTransactions struct {
-	service service.FindAllTransactions
+	finder service.TransactionsRetriever
 }
 
-func NewFindAllTransactions(s service.FindAllTransactions) FindAllTransactions {
+func NewFindAllTransactions(s service.TransactionsRetriever) FindAllTransactions {
 	return FindAllTransactions{s}
 }
 
 func (ctrl FindAllTransactions) Handle(c echo.Context) error {
 	ctx := c.Request().Context()
+	userId := c.Get("userId").(string)
 
-	transactions, err := ctrl.service.Invoke(ctx)
+	transactions, err := ctrl.finder.Retrieve(ctx, userId)
 	if err != nil {
-		log.Printf("[FindAllTransactions:Handle]%s", err)
+		log.Printf("[TransactionsRetriever:Handle]%s", err)
 		return c.JSON(
 			http.StatusInternalServerError,
-			echo.Map{"message": "Could not retrieve transactions"},
+			findAllTransactionsResponse{Error: "failed to fetch transactions"},
 		)
 	}
 

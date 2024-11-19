@@ -26,7 +26,7 @@ type withDrawSuite struct {
 	suite.Suite
 
 	accRepo    *mocks.AccountMockRepository
-	trxRepo    *mocks.TransactionMockRepository
+	trxRepo    *mocks.TransactionRepository
 	service    *service.TransactionService
 	bus        *mocks.EventBus
 	controller controller.Withdraw
@@ -36,7 +36,7 @@ type withDrawSuite struct {
 
 func (s *withDrawSuite) SetupTest() {
 	s.accRepo = new(mocks.AccountMockRepository)
-	s.trxRepo = new(mocks.TransactionMockRepository)
+	s.trxRepo = new(mocks.TransactionRepository)
 	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
 
 	s.bus = new(mocks.EventBus)

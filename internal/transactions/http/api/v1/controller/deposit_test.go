@@ -25,7 +25,7 @@ type Suite struct {
 	suite.Suite
 	bus        *mocks.EventBus
 	accRepo    *mocks.AccountMockRepository
-	trxRepo    *mocks.TransactionMockRepository
+	trxRepo    *mocks.TransactionRepository
 	service    *service.TransactionService
 	controller controller.Deposit
 	recorder   *httptest.ResponseRecorder
@@ -33,7 +33,7 @@ type Suite struct {
 
 func (s *Suite) SetupTest() {
 	s.accRepo = new(mocks.AccountMockRepository)
-	s.trxRepo = new(mocks.TransactionMockRepository)
+	s.trxRepo = new(mocks.TransactionRepository)
 	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
 	s.bus = new(mocks.EventBus)
 

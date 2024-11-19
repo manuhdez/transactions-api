@@ -1,0 +1,29 @@
+inpackage: False
+outpkg: mocks
+dir: test/mocks
+filename: "{{.PackageName}}_{{.InterfaceName | snakecase | lower }}.go"
+mockname: "{{.PackageName | firstUpper }}{{.InterfaceName}}"
+
+packages:
+  github.com/manuhdez/transactions-api/internal/users/domain/event:
+    interfaces:
+      Bus:
+      Handler:
+
+  github.com/manuhdez/transactions-api/internal/users/domain/user:
+    interfaces:
+      Repository:
+
+  github.com/manuhdez/transactions-api/internal/users/domain/service:
+    interfaces:
+      HashService:
+        config:
+          filename: "hasher.go"
+          mockname: "Hasher"
+
+  github.com/manuhdez/transactions-api/internal/users/infra:
+    interfaces:
+      TokenService:
+        config:
+          filename: "token_service.go"
+          mockname: "TokenService"

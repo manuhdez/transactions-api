@@ -44,6 +44,24 @@ deps-users:
 	cd - && \
 	make tidy-users
 
+# generate mocks
+mocks: user-mocks accounts-mocks transactions-mocks
+
+user-mocks:
+	cd ./internal/users && \
+	mockery && \
+	cd ../..
+
+accounts-mocks:
+	cd ./internal/accounts && \
+	mockery && \
+	cd ../..
+
+transactions-mocks:
+	cd ./internal/transactions && \
+	mockery && \
+	cd ../..
+
 ### go commands
 
 # Build

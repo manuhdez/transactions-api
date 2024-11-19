@@ -16,10 +16,10 @@ import (
 
 type Deposit struct {
 	eventBus event.Bus
-	service  service.Depositer
+	service  *service.TransactionService
 }
 
-func NewDeposit(s service.Depositer, b event.Bus) Deposit {
+func NewDeposit(s *service.TransactionService, b event.Bus) Deposit {
 	return Deposit{service: s, eventBus: b}
 }
 

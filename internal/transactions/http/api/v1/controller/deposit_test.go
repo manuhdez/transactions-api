@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
+	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
@@ -21,14 +22,18 @@ import (
 
 type Suite struct {
 	suite.Suite
-	service    *mocks.Transactioner
 	bus        *mocks.EventBus
+	accRepo    *mocks.AccountMockRepository
+	trxRepo    *mocks.TransactionMockRepository
+	service    *service.TransactionService
 	controller controller.Deposit
 	recorder   *httptest.ResponseRecorder
 }
 
 func (s *Suite) SetupTest() {
-	s.service = new(mocks.Transactioner)
+	s.accRepo = new(mocks.AccountMockRepository)
+	s.trxRepo = new(mocks.TransactionMockRepository)
+	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
 	s.bus = new(mocks.EventBus)
 
 	s.controller = controller.NewDeposit(s.service, s.bus)
@@ -36,20 +41,22 @@ func (s *Suite) SetupTest() {
 }
 
 func (s *Suite) assertMocks() {
-	s.service.AssertExpectations(s.T())
+	s.accRepo.AssertExpectations(s.T())
+	s.trxRepo.AssertExpectations(s.T())
 	s.bus.AssertExpectations(s.T())
 }
 
 func (s *Suite) TestDepositController_Success() {
-	trx := transaction.NewDeposit("1", "999", 100)
+	userAccount := account.NewAccount("1", "999")
+	deposit := transaction.NewDeposit("1", "999", 100)
 
-	body, err := json.Marshal(request.Deposit{Account: trx.AccountId, Amount: trx.Amount, Currency: "EUR"})
+	body, err := json.Marshal(request.Deposit{Account: deposit.AccountId, Amount: deposit.Amount, Currency: "EUR"})
 	if err != nil {
 		s.Fail("Error marshaling json")
 	}
 
-	s.service.On("Deposit", mock.Anything, mock.Anything).Return(nil).Once()
-	s.service.On("PullEvents").Return([]event.Event{event.NewDepositCreated(trx)})
+	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
+	s.trxRepo.On("Deposit", mock.Anything, deposit).Return(nil).Once()
 	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
 	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))

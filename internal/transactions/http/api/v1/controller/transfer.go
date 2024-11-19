@@ -22,10 +22,10 @@ type transferRequest struct {
 
 type Transfer struct {
 	eventBus        event.Bus
-	transferService service.Transferer
+	transferService *service.TransactionService
 }
 
-func NewTransferController(srv service.Transferer, bus event.Bus) Transfer {
+func NewTransferController(srv *service.TransactionService, bus event.Bus) Transfer {
 	return Transfer{transferService: srv, eventBus: bus}
 }
 
@@ -60,10 +60,16 @@ func (ctrl Transfer) publishEvents(ctx context.Context) error {
 	var errorList []error
 
 	events := ctrl.transferService.PullEvents()
+	if len(events) == 0 {
+		return fmt.Errorf("[publishEvents][err: no events where generated]")
+	}
+
 	for i := range events {
 		if err := ctrl.eventBus.Publish(ctx, events[i]); err != nil {
 			// TODO: handle retry of unpublished events
 			errorList = append(errorList, err)
+		} else {
+			log.Printf("[Transfer][publishEvents][msg: new event published][event: %+v]", events[i])
 		}
 	}
 

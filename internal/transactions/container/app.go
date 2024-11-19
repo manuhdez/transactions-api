@@ -27,7 +27,7 @@ var Repositories = wire.NewSet(
 	infra.NewAccountMysqlRepository,
 )
 var Services = wire.NewSet(
-	service.NewFindAllTransactionsService,
+	service.NewTransactionsRetriever,
 	service.NewCreateAccountService,
 	service.NewTransactionService,
 )

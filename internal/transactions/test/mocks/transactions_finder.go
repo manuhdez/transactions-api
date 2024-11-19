@@ -20,7 +20,7 @@ func (_m *AllTransactionsFinder) Invoke(_a0 context.Context) ([]transaction.Tran
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Invoke")
+		panic("no return value specified for Retrieve")
 	}
 
 	var r0 []transaction.Transaction

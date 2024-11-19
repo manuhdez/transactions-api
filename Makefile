@@ -48,17 +48,17 @@ deps-users:
 mocks: user-mocks accounts-mocks transactions-mocks
 
 user-mocks:
-	cd ./internal/users && \
+	@cd ./internal/users && \
 	mockery && \
 	cd ../..
 
 accounts-mocks:
-	cd ./internal/accounts && \
+	@cd ./internal/accounts && \
 	mockery && \
 	cd ../..
 
 transactions-mocks:
-	cd ./internal/transactions && \
+	@cd ./internal/transactions && \
 	mockery && \
 	cd ../..
 

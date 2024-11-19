@@ -19,7 +19,7 @@ var (
 )
 
 type trxSuite struct {
-	trxRepo *mocks.TransactionMockRepository
+	trxRepo *mocks.TransactionRepository
 	accRepo *mocks.AccountMockRepository
 	srv     *TransactionService
 }
@@ -30,7 +30,7 @@ func (s trxSuite) assertMocks(t *testing.T) {
 }
 
 func setupSuite() trxSuite {
-	trxRepo := new(mocks.TransactionMockRepository)
+	trxRepo := new(mocks.TransactionRepository)
 	accRepo := new(mocks.AccountMockRepository)
 
 	return trxSuite{

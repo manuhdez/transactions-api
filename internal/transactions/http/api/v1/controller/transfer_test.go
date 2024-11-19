@@ -28,7 +28,7 @@ var (
 type transferSuite struct {
 	bus      *mocks.EventBus
 	accRepo  *mocks.AccountMockRepository
-	trxRepo  *mocks.TransactionMockRepository
+	trxRepo  *mocks.TransactionRepository
 	transfer *service.TransactionService
 	ctrl     Transfer
 }
@@ -36,7 +36,7 @@ type transferSuite struct {
 func setupTransferSuite() transferSuite {
 	bus := new(mocks.EventBus)
 	accRepo := new(mocks.AccountMockRepository)
-	trxRepo := new(mocks.TransactionMockRepository)
+	trxRepo := new(mocks.TransactionRepository)
 	trx := service.NewTransactionService(trxRepo, accRepo)
 
 	return transferSuite{

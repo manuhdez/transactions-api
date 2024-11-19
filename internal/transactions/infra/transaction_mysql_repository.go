@@ -39,19 +39,20 @@ func (r TransactionMysqlRepository) Withdraw(ctx context.Context, trx transactio
 	return nil
 }
 
-// FindAll retrieves a list with all transactions
-// TODO: filter by user id
-func (r TransactionMysqlRepository) FindAll(ctx context.Context) ([]transaction.Transaction, error) {
-	log.Printf("[TransactionMysqlRepository:FindAll]")
+// All retrieves a list with all transactions
+func (r TransactionMysqlRepository) All(ctx context.Context, userId string) ([]transaction.Transaction, error) {
+	log.Printf("[TransactionMysqlRepository:All][userId:%s]", userId)
 
 	var trxList []TransactionMysql
 	res := r.db.
 		WithContext(ctx).
 		Model(&TransactionMysql{}).
+		Where("user_id = ?", userId).
+		Order("date desc").
 		Find(&trxList)
 	if res.Error != nil {
-		log.Printf("[TransactionMysqlRepository:FindAll][gorm][err:%s]", res.Error)
-		return nil, fmt.Errorf("[TransactionMysqlRepository:FindAll][gorm][err:%w]", res.Error)
+		log.Printf("[TransactionMysqlRepository:All][gorm][err:%s]", res.Error)
+		return nil, fmt.Errorf("[TransactionMysqlRepository:All][gorm][err:%w]", res.Error)
 	}
 
 	transactions := make([]transaction.Transaction, len(trxList))

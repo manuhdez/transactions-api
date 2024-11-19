@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setup(body io.Reader) (*httptest.ResponseRecorder, echo.Context, *mocks.TransactionMockRepository) {
+func setup(body io.Reader) (*httptest.ResponseRecorder, echo.Context, *mocks.TransactionRepository) {
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/transactions/123", body)
 	ctx := echo.New().NewContext(req, recorder)
-	repo := new(mocks.TransactionMockRepository)
+	repo := new(mocks.TransactionRepository)
 
 	return recorder, ctx, repo
 }

@@ -30,10 +30,10 @@ func NewApp() container.App {
 	deposit := controller.NewDeposit(transactionService, eventBus)
 	withdraw := controller.NewWithdraw(transactionService, eventBus)
 	transfer := controller.NewTransferController(transactionService, eventBus)
-	findAllTransactions := service.NewFindAllTransactionsService(transactionMysqlRepository)
-	controllerFindAllTransactions := controller.NewFindAllTransactions(findAllTransactions)
+	transactionsRetriever := service.NewTransactionsRetriever(transactionMysqlRepository)
+	findAllTransactions := controller.NewFindAllTransactions(transactionsRetriever)
 	findAccountTransactions := controller.NewFindAccountTransactions(transactionMysqlRepository)
-	routerRouter := router.NewRouter(deposit, withdraw, transfer, controllerFindAllTransactions, findAccountTransactions)
+	routerRouter := router.NewRouter(deposit, withdraw, transfer, findAllTransactions, findAccountTransactions)
 	app := container.NewApp(routerRouter, eventBus)
 	return app
 }

@@ -10,3 +10,8 @@ packages:
       Depositer:
       Withdrawer:
       Transferer:
+
+
+  github.com/manuhdez/transactions-api/internal/transactions/domain/transaction:
+    interfaces:
+      Repository:

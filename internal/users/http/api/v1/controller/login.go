@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -43,6 +44,7 @@ func (ctrl Login) Handle(c echo.Context) error {
 	}
 
 	if err := c.Validate(&req); err != nil {
+		log.Printf("[Login:Handle][err: %s]", err)
 		return c.JSON(http.StatusBadRequest, LoginResponse{Success: false, Error: errMissingCredentials})
 	}
 

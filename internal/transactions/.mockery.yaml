@@ -1,2 +1,12 @@
 inpackage: False
-output: test/mocks
+outpkg: mocks
+dir: test/mocks
+filename: "{{.PackageName}}_{{.InterfaceName | snakecase | lower }}.go"
+mockname: "{{.PackageName | firstUpper }}{{.InterfaceName}}"
+
+packages:
+  github.com/manuhdez/transactions-api/internal/transactions/app/service:
+    interfaces:
+      Depositer:
+      Withdrawer:
+      Transferer:

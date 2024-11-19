@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
@@ -21,32 +21,36 @@ import (
 
 type Suite struct {
 	suite.Suite
-	repository *mocks.TransactionMockRepository
-	accRepo    *mocks.AccountMockRepository
+	service    *mocks.Transactioner
 	bus        *mocks.EventBus
 	controller controller.Deposit
 	recorder   *httptest.ResponseRecorder
 }
 
 func (s *Suite) SetupTest() {
-	s.repository = new(mocks.TransactionMockRepository)
-	s.repository.On("Deposit", mock.Anything, mock.Anything).Return(nil)
-
-	s.accRepo = new(mocks.AccountMockRepository)
-	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{UserId: "999"}, nil)
-
+	s.service = new(mocks.Transactioner)
 	s.bus = new(mocks.EventBus)
-	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
-	s.controller = controller.NewDeposit(service.NewTransactionService(s.repository, s.accRepo, s.bus))
+	s.controller = controller.NewDeposit(s.service, s.bus)
 	s.recorder = httptest.NewRecorder()
 }
 
+func (s *Suite) assertMocks() {
+	s.service.AssertExpectations(s.T())
+	s.bus.AssertExpectations(s.T())
+}
+
 func (s *Suite) TestDepositController_Success() {
-	body, err := json.Marshal(request.Deposit{Account: "333", Amount: 100, Currency: "EUR"})
+	trx := transaction.NewDeposit("1", "999", 100)
+
+	body, err := json.Marshal(request.Deposit{Account: trx.AccountId, Amount: trx.Amount, Currency: "EUR"})
 	if err != nil {
 		s.Fail("Error marshaling json")
 	}
+
+	s.service.On("Deposit", mock.Anything, mock.Anything).Return(nil).Once()
+	s.service.On("PullEvents").Return([]event.Event{event.NewDepositCreated(trx)})
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
 	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -59,6 +63,7 @@ func (s *Suite) TestDepositController_Success() {
 		s.T().Errorf("Expected status code 201, got %d", s.recorder.Code)
 	}
 	assert.JSONEq(s.T(), `{"message":"Deposit successfully created"}`, s.recorder.Body.String())
+	s.assertMocks()
 }
 
 func (s *Suite) TestDepositController_MissingAccount() {
@@ -75,6 +80,7 @@ func (s *Suite) TestDepositController_MissingAccount() {
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
 	}
+	s.assertMocks()
 }
 
 func (s *Suite) TestDepositController_MissingAmount() {
@@ -91,6 +97,7 @@ func (s *Suite) TestDepositController_MissingAmount() {
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
 	}
+	s.assertMocks()
 }
 
 func (s *Suite) TestDepositController_MissingCurrency() {
@@ -107,6 +114,7 @@ func (s *Suite) TestDepositController_MissingCurrency() {
 	if s.recorder.Code != 400 {
 		s.T().Errorf("Expected status code 400, got %d", s.recorder.Code)
 	}
+	s.assertMocks()
 }
 
 func TestDepositController(t *testing.T) {

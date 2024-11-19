@@ -15,17 +15,25 @@ type Transaction struct {
 	Amount    float32
 }
 
-func NewTransaction(transactionType Type, accountId, userId string, amount float32) Transaction {
-	return Transaction{
-		Type:      transactionType,
-		AccountId: accountId,
-		UserId:    userId,
-		Amount:    amount,
-	}
+func NewTransaction(t Type, acc, user string, amount float32) Transaction {
+	return Transaction{Type: t, AccountId: acc, UserId: user, Amount: amount}
+}
+
+func NewDeposit(acc, user string, amount float32) Transaction {
+	return Transaction{Type: Deposit, AccountId: acc, UserId: user, Amount: amount}
+}
+
+func NewWithdraw(acc, user string, amount float32) Transaction {
+	return Transaction{Type: Withdrawal, AccountId: acc, UserId: user, Amount: amount}
 }
 
 type Transfer struct {
+	UserId string  // user performing the transfer
 	From   string  // origin account
 	To     string  // destination account
 	Amount float32 // amount to transfer
+}
+
+func NewTransfer(user, from, to string, amount float32) Transfer {
+	return Transfer{UserId: user, From: from, To: to, Amount: amount}
 }

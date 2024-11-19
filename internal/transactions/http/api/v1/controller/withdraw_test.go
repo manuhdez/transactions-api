@@ -14,6 +14,7 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
@@ -66,7 +67,7 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 
 	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
 	s.trxRepo.On("Withdraw", mock.Anything, trx).Return(nil).Once()
-	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
+	s.bus.On("Publish", mock.Anything, event.NewWithdrawCreated(trx)).Return(nil).Once()
 
 	ctx := s.server.NewContext(req, s.recorder)
 	ctx.Set("userId", "999")

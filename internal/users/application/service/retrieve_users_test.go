@@ -18,7 +18,7 @@ func TestUsersRetriever_Retrieve(t *testing.T) {
 	}
 
 	t.Run("should return a list of users", func(t *testing.T) {
-		repo := new(mocks.Repository)
+		repo := new(mocks.UserRepository)
 		repo.On("All", mock.Anything).Return(testUsers, nil)
 
 		retriever := NewUsersRetrieverService(repo)
@@ -29,7 +29,7 @@ func TestUsersRetriever_Retrieve(t *testing.T) {
 	})
 
 	t.Run("should return an error if the repository fails", func(t *testing.T) {
-		repo := new(mocks.Repository)
+		repo := new(mocks.UserRepository)
 		repo.On("All", mock.Anything).Return(nil, fmt.Errorf("failed to retrieve users"))
 
 		retriever := NewUsersRetrieverService(repo)

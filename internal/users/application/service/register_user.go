@@ -37,7 +37,7 @@ func (srv RegisterUser) Register(user user.User) error {
 		return err
 	}
 
-	go srv.publishEvent(ctx, user)
+	srv.publishEvent(ctx, user)
 	return nil
 }
 

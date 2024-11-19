@@ -61,10 +61,7 @@ func (r UserMysqlRepository) FindByEmail(ctx context.Context, email string) (use
 	defer metrics.TrackDBQueryDuration(time.Now())
 
 	var u UserMysql
-	if err := r.db.
-		WithContext(ctx).
-		Where("email = ?", email).
-		First(&u).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&u).Error; err != nil {
 		metrics.TrackDBErrorAdd()
 		return user.User{}, fmt.Errorf("[UserMysqlRepository:FindByEmail][err: %w]", err)
 	}

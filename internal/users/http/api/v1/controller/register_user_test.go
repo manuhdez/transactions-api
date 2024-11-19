@@ -20,14 +20,15 @@ import (
 )
 
 func TestRegisterUser_Handle(t *testing.T) {
-	repo := mocks.UserMockRepository{Err: nil}
+	repo := new(mocks.UserRepository)
 	hasher := infra.NewBcryptService()
-	bus := new(mocks.Bus)
+	bus := new(mocks.EventBus)
 	bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 	serv := service.NewRegisterUserService(repo, hasher, bus)
 	ctrl := controller.NewRegisterUserController(serv)
 
 	t.Run("returns status 201", func(t *testing.T) {
+		repo.On("Save", mock.Anything, mock.Anything).Return(nil)
 		bus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 		reqData := getValidRequest(t)
 		req := httptest.NewRequest(http.MethodPost, "/", reqData)

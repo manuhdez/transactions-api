@@ -14,6 +14,7 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
@@ -57,7 +58,7 @@ func (s *Suite) TestDepositController_Success() {
 
 	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
 	s.trxRepo.On("Deposit", mock.Anything, deposit).Return(nil).Once()
-	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
+	s.bus.On("Publish", mock.Anything, event.NewDepositCreated(deposit)).Return(nil).Once()
 
 	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

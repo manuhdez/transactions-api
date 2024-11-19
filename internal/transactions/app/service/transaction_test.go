@@ -21,7 +21,7 @@ var (
 type trxSuite struct {
 	trxRepo *mocks.TransactionMockRepository
 	accRepo *mocks.AccountMockRepository
-	srv     TransactionService
+	srv     *TransactionService
 }
 
 func (s trxSuite) assertMocks(t *testing.T) {

@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
+	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/controller"
 	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
@@ -23,7 +24,9 @@ import (
 type withDrawSuite struct {
 	suite.Suite
 
-	service    *mocks.Transactioner
+	accRepo    *mocks.AccountMockRepository
+	trxRepo    *mocks.TransactionMockRepository
+	service    *service.TransactionService
 	bus        *mocks.EventBus
 	controller controller.Withdraw
 	recorder   *httptest.ResponseRecorder
@@ -31,7 +34,10 @@ type withDrawSuite struct {
 }
 
 func (s *withDrawSuite) SetupTest() {
-	s.service = new(mocks.Transactioner)
+	s.accRepo = new(mocks.AccountMockRepository)
+	s.trxRepo = new(mocks.TransactionMockRepository)
+	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
+
 	s.bus = new(mocks.EventBus)
 	s.controller = controller.NewWithdraw(s.service, s.bus)
 
@@ -42,11 +48,13 @@ func (s *withDrawSuite) SetupTest() {
 }
 
 func (s *withDrawSuite) assertMocks() {
-	s.service.AssertExpectations(s.T())
+	s.accRepo.AssertExpectations(s.T())
+	s.trxRepo.AssertExpectations(s.T())
 	s.bus.AssertExpectations(s.T())
 }
 
 func (s *withDrawSuite) TestWithdrawController_Success() {
+	userAccount := account.NewAccount("1", "999")
 	trx := transaction.NewWithdraw("1", "999", 125)
 	body, err := json.Marshal(request.Withdraw{Account: trx.AccountId, Amount: trx.Amount, Currency: "EUR"})
 	if err != nil {
@@ -56,8 +64,8 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-	s.service.On("Withdraw", mock.Anything, trx).Return(nil).Once()
-	s.service.On("PullEvents").Return([]event.Event{event.NewWithdrawCreated(trx)}).Once()
+	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
+	s.trxRepo.On("Withdraw", mock.Anything, trx).Return(nil).Once()
 	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
 	ctx := s.server.NewContext(req, s.recorder)

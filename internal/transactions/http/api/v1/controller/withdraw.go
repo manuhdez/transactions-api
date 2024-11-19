@@ -16,10 +16,10 @@ import (
 
 type Withdraw struct {
 	eventBus   event.Bus
-	trxService service.Withdrawer
+	trxService *service.TransactionService
 }
 
-func NewWithdraw(s service.Withdrawer, b event.Bus) Withdraw {
+func NewWithdraw(s *service.TransactionService, b event.Bus) Withdraw {
 	return Withdraw{trxService: s, eventBus: b}
 }
 

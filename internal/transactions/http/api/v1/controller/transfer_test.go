@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
@@ -25,16 +27,22 @@ var (
 
 type transferSuite struct {
 	bus      *mocks.EventBus
-	transfer *mocks.ServiceTransferer
+	accRepo  *mocks.AccountMockRepository
+	trxRepo  *mocks.TransactionMockRepository
+	transfer *service.TransactionService
 	ctrl     Transfer
 }
 
 func setupTransferSuite() transferSuite {
 	bus := new(mocks.EventBus)
-	trx := new(mocks.ServiceTransferer)
+	accRepo := new(mocks.AccountMockRepository)
+	trxRepo := new(mocks.TransactionMockRepository)
+	trx := service.NewTransactionService(trxRepo, accRepo)
 
 	return transferSuite{
 		bus:      bus,
+		accRepo:  accRepo,
+		trxRepo:  trxRepo,
 		transfer: trx,
 		ctrl:     NewTransferController(trx, bus),
 	}
@@ -42,7 +50,8 @@ func setupTransferSuite() transferSuite {
 
 func (s transferSuite) assertMocks(t *testing.T) {
 	s.bus.AssertExpectations(t)
-	s.transfer.AssertExpectations(t)
+	s.accRepo.AssertExpectations(t)
+	s.trxRepo.AssertExpectations(t)
 }
 
 func TestTransfer_Handle(t *testing.T) {
@@ -53,14 +62,15 @@ func TestTransfer_Handle(t *testing.T) {
 		s := setupTransferSuite()
 		defer s.assertMocks(t)
 
-		s.transfer.On("Transfer", mock.Anything, mock.Anything).Return(nil).Once()
-		s.transfer.On("PullEvents").Return([]event.Event{
-			event.NewWithdrawCreated(transaction.NewWithdraw("1", "999", 100)),
-			event.NewDepositCreated(transaction.NewDeposit("2", "999", 100)),
-		}).Once()
-		s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Twice()
+		s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{Id: "1", UserId: "999"}, nil)
+		withdraw := transaction.NewWithdraw("1", "999", 100)
+		s.trxRepo.On("Withdraw", mock.Anything, withdraw).Return(nil)
+		deposit := transaction.NewDeposit("2", "999", 100)
+		s.trxRepo.On("Deposit", mock.Anything, deposit).Return(nil)
+		s.bus.On("Publish", mock.Anything, event.NewWithdrawCreated(withdraw)).Return(nil).Once()
+		s.bus.On("Publish", mock.Anything, event.NewDepositCreated(deposit)).Return(nil).Once()
 
-		body, err := json.Marshal(transferRequest{From: "1", To: "2", Amount: 50, UserId: "999"})
+		body, err := json.Marshal(transferRequest{From: "1", To: "2", Amount: 100, UserId: "999"})
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -94,7 +104,7 @@ func TestTransfer_Handle(t *testing.T) {
 		s := setupTransferSuite()
 		defer s.assertMocks(t)
 
-		s.transfer.On("Transfer", mock.Anything, mock.Anything).Return(errTransfer).Once()
+		s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{}, errTransfer)
 
 		body, err := json.Marshal(transferRequest{UserId: "999", From: "1", To: "2", Amount: 50})
 		require.NoError(t, err)

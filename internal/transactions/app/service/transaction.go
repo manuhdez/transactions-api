@@ -11,23 +11,21 @@ import (
 )
 
 type TransactionService struct {
-	EventPuller
-
 	trxRepo transaction.Repository
 	accRepo account.Repository
 
 	events []event.Event
 }
 
-func NewTransactionService(trxRepo transaction.Repository, accRepo account.Repository) TransactionService {
-	return TransactionService{
+func NewTransactionService(trxRepo transaction.Repository, accRepo account.Repository) *TransactionService {
+	return &TransactionService{
 		trxRepo: trxRepo,
 		accRepo: accRepo,
 	}
 }
 
 // Deposit deposits money into an account
-func (srv TransactionService) Deposit(ctx context.Context, trx transaction.Transaction) error {
+func (srv *TransactionService) Deposit(ctx context.Context, trx transaction.Transaction) error {
 	log.Printf("[TransactionService:Deposit][transaction:%+v]", trx)
 
 	if trx.Type != transaction.Deposit {
@@ -47,7 +45,7 @@ func (srv TransactionService) Deposit(ctx context.Context, trx transaction.Trans
 }
 
 // Withdraw withdraws money from an account
-func (srv TransactionService) Withdraw(ctx context.Context, trx transaction.Transaction) error {
+func (srv *TransactionService) Withdraw(ctx context.Context, trx transaction.Transaction) error {
 	log.Printf("[TransactionService:Withdraw][transaction:%+v]", trx)
 
 	if trx.Type != transaction.Withdrawal {
@@ -68,7 +66,7 @@ func (srv TransactionService) Withdraw(ctx context.Context, trx transaction.Tran
 }
 
 // Transfer transfers money between two accounts
-func (srv TransactionService) Transfer(ctx context.Context, trx transaction.Transfer) error {
+func (srv *TransactionService) Transfer(ctx context.Context, trx transaction.Transfer) error {
 	log.Printf("[TransactionService:Transfer][transfer:%+v]", trx)
 
 	// Withdraw from the origin account
@@ -97,19 +95,19 @@ func (srv TransactionService) Transfer(ctx context.Context, trx transaction.Tran
 }
 
 // PullEvents returns the domain events generated and resets the list
-func (srv TransactionService) PullEvents() []event.Event {
+func (srv *TransactionService) PullEvents() []event.Event {
 	events := srv.events
 	srv.events = make([]event.Event, 0)
 	return events
 }
 
 // pushEvent appends an event to the list of events
-func (srv TransactionService) pushEvent(ev event.Event) {
+func (srv *TransactionService) pushEvent(ev event.Event) {
 	srv.events = append(srv.events, ev)
 }
 
 // isAccountAuthorized checks if the account exist and is owned by the user
-func (srv TransactionService) isAccountAuthorized(ctx context.Context, trx *transaction.Transaction) error {
+func (srv *TransactionService) isAccountAuthorized(ctx context.Context, trx *transaction.Transaction) error {
 	acc, err := srv.accRepo.FindById(ctx, trx.AccountId)
 	if err != nil {
 		return fmt.Errorf("[isAccountAuthorized]%w", err)

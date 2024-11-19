@@ -29,9 +29,6 @@ var Repositories = wire.NewSet(
 var Services = wire.NewSet(
 	service.NewFindAllTransactionsService,
 	service.NewCreateAccountService,
-	wire.Bind(new(service.Depositer), new(service.TransactionService)),
-	wire.Bind(new(service.Withdrawer), new(service.TransactionService)),
-	wire.Bind(new(service.Transferer), new(service.TransactionService)),
 	service.NewTransactionService,
 )
 

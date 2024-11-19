@@ -21,5 +21,7 @@ func (t TransactionMysql) TableName() string {
 }
 
 func (t TransactionMysql) ToDomainModel() transaction.Transaction {
-	return transaction.NewTransaction(t.Type, t.AccountId, t.UserId, t.Amount)
+	trx := transaction.NewTransaction(t.Type, t.AccountId, t.UserId, t.Amount)
+	trx.Date = t.Date
+	return trx
 }

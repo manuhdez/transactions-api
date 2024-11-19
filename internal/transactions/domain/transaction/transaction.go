@@ -1,5 +1,7 @@
 package transaction
 
+import "time"
+
 type Type string
 
 const (
@@ -13,6 +15,7 @@ type Transaction struct {
 	AccountId string
 	UserId    string
 	Amount    float32
+	Date      time.Time
 }
 
 func NewTransaction(t Type, acc, user string, amount float32) Transaction {

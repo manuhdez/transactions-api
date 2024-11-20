@@ -45,9 +45,7 @@ func TestTransactionService_Deposit(t *testing.T) {
 		s := setupSuite()
 		s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{UserId: "000"}, nil)
 		s.trxRepo.On("Deposit", mock.Anything, mock.Anything).Return(nil).Once()
-		//s.eventBus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
-		//ctx := context.WithValue(context.Background(), "userId", "000")
 		err := s.srv.Deposit(context.TODO(), transaction.Transaction{
 			Type:      transaction.Deposit,
 			AccountId: "123",
@@ -195,18 +193,18 @@ func TestTransactionService_Withdraw(t *testing.T) {
 
 func TestTransactionService_Transfer(t *testing.T) {
 	var (
-		userId        = "111"
-		fromAccountId = "001"
-		toAccountId   = "002"
+		userID        = "111"
+		fromAccountID = "001"
+		toAccountID   = "002"
 	)
 
 	t.Run("happy path - transfer successful", func(t *testing.T) {
 		s := setupSuite()
-		s.accRepo.On("FindById", mock.Anything, fromAccountId).Return(account.Account{UserId: userId}, nil).Once()
+		s.accRepo.On("FindById", mock.Anything, fromAccountID).Return(account.Account{UserId: userID}, nil).Once()
 		s.trxRepo.On("Withdraw", mock.Anything, mock.Anything).Return(nil).Once()
 		s.trxRepo.On("Deposit", mock.Anything, mock.Anything).Return(nil).Once()
 
-		trf := transaction.NewTransfer(userId, fromAccountId, toAccountId, 120)
+		trf := transaction.NewTransfer(userID, fromAccountID, toAccountID, 120)
 		err := s.srv.Transfer(context.TODO(), trf)
 		assert.NoError(t, err)
 		s.assertMocks(t)
@@ -214,9 +212,9 @@ func TestTransactionService_Transfer(t *testing.T) {
 
 	t.Run("error unauthorized access to origin account", func(t *testing.T) {
 		s := setupSuite()
-		s.accRepo.On("FindById", mock.Anything, fromAccountId).Return(account.Account{UserId: "333"}, nil).Once()
+		s.accRepo.On("FindById", mock.Anything, fromAccountID).Return(account.Account{UserId: "333"}, nil).Once()
 
-		trf := transaction.NewTransfer(userId, fromAccountId, toAccountId, 120)
+		trf := transaction.NewTransfer(userID, fromAccountID, toAccountID, 120)
 		err := s.srv.Transfer(context.TODO(), trf)
 		assert.ErrorIs(t, err, ErrUnauthorized)
 		s.assertMocks(t)
@@ -224,10 +222,10 @@ func TestTransactionService_Transfer(t *testing.T) {
 
 	t.Run("error withdrawing from origin account", func(t *testing.T) {
 		s := setupSuite()
-		s.accRepo.On("FindById", mock.Anything, fromAccountId).Return(account.Account{UserId: userId}, nil).Once()
+		s.accRepo.On("FindById", mock.Anything, fromAccountID).Return(account.Account{UserId: userID}, nil).Once()
 		s.trxRepo.On("Withdraw", mock.Anything, mock.Anything).Return(ErrSaveTrx).Once()
 
-		trf := transaction.NewTransfer(userId, fromAccountId, toAccountId, 120)
+		trf := transaction.NewTransfer(userID, fromAccountID, toAccountID, 120)
 		err := s.srv.Transfer(context.TODO(), trf)
 		assert.ErrorIs(t, err, ErrSaveTrx)
 		s.assertMocks(t)
@@ -235,13 +233,31 @@ func TestTransactionService_Transfer(t *testing.T) {
 
 	t.Run("error depositing into destination account", func(t *testing.T) {
 		s := setupSuite()
-		s.accRepo.On("FindById", mock.Anything, fromAccountId).Return(account.Account{UserId: userId}, nil).Once()
+		s.accRepo.On("FindById", mock.Anything, fromAccountID).Return(account.Account{UserId: userID}, nil).Once()
 		s.trxRepo.On("Withdraw", mock.Anything, mock.Anything).Return(nil).Once()
 		s.trxRepo.On("Deposit", mock.Anything, mock.Anything).Return(ErrSaveTrx).Once()
 
-		trf := transaction.NewTransfer(userId, fromAccountId, toAccountId, 120)
+		trf := transaction.NewTransfer(userID, fromAccountID, toAccountID, 120)
 		err := s.srv.Transfer(context.TODO(), trf)
 		assert.ErrorIs(t, err, ErrSaveTrx)
 		s.assertMocks(t)
+	})
+
+	t.Run("error transfer amount too low", func(t *testing.T) {
+		s := setupSuite()
+		err := s.srv.Transfer(
+			context.TODO(),
+			transaction.NewTransfer(userID, fromAccountID, toAccountID, 8),
+		)
+		assert.ErrorIs(t, err, ErrTransferAmountTooLow)
+	})
+
+	t.Run("error transfer amount too high", func(t *testing.T) {
+		s := setupSuite()
+		err := s.srv.Transfer(
+			context.TODO(),
+			transaction.NewTransfer(userID, fromAccountID, toAccountID, 120_000),
+		)
+		assert.ErrorIs(t, err, ErrTransferAmountTooHigh)
 	})
 }

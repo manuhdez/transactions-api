@@ -86,7 +86,7 @@ func (s *withDrawSuite) TestWithdrawController_BadRequest() {
 	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ctx := s.server.NewContext(req, s.recorder)
-	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), s.controller.Handle(ctx))
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	s.assertMocks()
 }

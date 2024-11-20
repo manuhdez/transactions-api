@@ -10,6 +10,18 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
 
+const (
+	TransactionMinAmount = 10
+	DepositMaxAmount     = 5_000
+	WithdrawMaxAmount    = 3_000
+	TransferMaxAmount    = 10_000
+)
+
+var (
+	ErrTransferAmountTooLow  = fmt.Errorf("transaction amount must not be lower than %d", TransactionMinAmount)
+	ErrTransferAmountTooHigh = fmt.Errorf("transfer amount must not be greater than %d", TransferMaxAmount)
+)
+
 type TransactionService struct {
 	trxRepo transaction.Repository
 	accRepo account.Repository
@@ -68,6 +80,15 @@ func (srv *TransactionService) Withdraw(ctx context.Context, trx transaction.Tra
 // Transfer transfers money between two accounts
 func (srv *TransactionService) Transfer(ctx context.Context, trx transaction.Transfer) error {
 	log.Printf("[TransactionService:Transfer][transfer:%+v]", trx)
+
+	// Check amount is between min and max allowed values
+	if trx.Amount < TransactionMinAmount {
+		return fmt.Errorf("[TransactionService:Transfer][err:%w]", ErrTransferAmountTooLow)
+	}
+
+	if trx.Amount > TransferMaxAmount {
+		return fmt.Errorf("[TransactionService:Transfer][err:%w]", ErrTransferAmountTooHigh)
+	}
 
 	// Withdraw from the origin account
 	withdraw := transaction.NewWithdraw(trx.From, trx.UserId, trx.Amount)

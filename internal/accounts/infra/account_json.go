@@ -23,9 +23,9 @@ func NewJsonAccount(a account.Account) AccountJson {
 }
 
 func NewJsonAccountList(list []account.Account) []AccountJson {
-	var accounts []AccountJson
-	for _, item := range list {
-		accounts = append(accounts, NewJsonAccount(item))
+	accounts := make([]AccountJson, len(list))
+	for i := range list {
+		accounts[i] = NewJsonAccount(list[i])
 	}
 	return accounts
 }

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -12,7 +11,10 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 )
 
-var ErrInvalidUserIdForCreate = errors.New("cannot create an account for a different user than the logged in")
+var (
+	ErrInvalidUserIdForCreate = errors.New("cannot create an account for a different user than the logged in")
+	ErrUnauthorized           = errors.New("unauthorized to create account")
+)
 
 type CreateAccount struct {
 	service service.CreateService
@@ -34,12 +36,12 @@ func (ctrl CreateAccount) Handle(c echo.Context) error {
 	}
 
 	userId, ok := c.Get("userId").(string)
-	if !ok || userId != req.UserId {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": ErrInvalidUserIdForCreate})
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": ErrUnauthorized})
 	}
 
-	ctx := context.WithValue(c.Request().Context(), "userId", userId)
-	if err := ctrl.service.Create(ctx, req.Decode()); err != nil {
+	ctx := c.Request().Context()
+	if err := ctrl.service.Create(ctx, req.Decode(userId)); err != nil {
 		log.Printf("Error creating account: %e", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}

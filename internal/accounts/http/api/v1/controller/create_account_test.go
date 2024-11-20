@@ -8,17 +8,15 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
-	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
-
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
+	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
+	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
 )
 
 type CreateAccountTestSuite struct {
@@ -45,7 +43,7 @@ func (s *CreateAccountTestSuite) SetupTest() {
 }
 
 func (s *CreateAccountTestSuite) TestCreateAccountWithValidBody() {
-	body, err := json.Marshal(request.CreateAccount{Id: "123", UserId: "321", Currency: ""})
+	body, err := json.Marshal(request.CreateAccount{Id: "123", Currency: ""})
 	require.NoError(s.T(), err)
 	req := httptest.NewRequest(http.MethodPost, "/accounts", bytes.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -29,7 +28,7 @@ type testSuite struct {
 	suite.Suite
 	repository *mocks.TransactionRepository
 	controller FindAllTransactions
-	ctx        *gin.Context
+	ctx        *echo.Context
 }
 
 func (s *testSuite) SetupTest() {

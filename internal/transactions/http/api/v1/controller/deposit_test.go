@@ -3,6 +3,7 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
@@ -21,12 +23,15 @@ import (
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
 )
 
+var errAccountNotFound = errors.New("account not found")
+
 type Suite struct {
 	suite.Suite
 	bus        *mocks.EventBus
 	accRepo    *mocks.AccountMockRepository
 	trxRepo    *mocks.TransactionRepository
 	service    *service.TransactionService
+	accFinder  *service.AccountFinder
 	controller controller.Deposit
 	recorder   *httptest.ResponseRecorder
 }
@@ -34,10 +39,11 @@ type Suite struct {
 func (s *Suite) SetupTest() {
 	s.accRepo = new(mocks.AccountMockRepository)
 	s.trxRepo = new(mocks.TransactionRepository)
-	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
+	s.service = service.NewTransactionService(s.trxRepo)
+	s.accFinder = service.NewAccountFinder(s.accRepo)
 	s.bus = new(mocks.EventBus)
 
-	s.controller = controller.NewDeposit(s.service, s.bus)
+	s.controller = controller.NewDeposit(s.service, s.accFinder, s.bus)
 	s.recorder = httptest.NewRecorder()
 }
 
@@ -71,6 +77,27 @@ func (s *Suite) TestDepositController_Success() {
 		s.T().Errorf("Expected status code 201, got %d", s.recorder.Code)
 	}
 	assert.JSONEq(s.T(), `{"message":"Deposit successfully created"}`, s.recorder.Body.String())
+	s.assertMocks()
+}
+
+func (s *Suite) TestAccountNotFound() {
+	deposit := transaction.NewDeposit("1", "999", 100)
+
+	body, err := json.Marshal(request.Deposit{Account: deposit.AccountId, Amount: deposit.Amount, Currency: "EUR"})
+	require.NoError(s.T(), err)
+
+	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{}, errAccountNotFound).Once()
+
+	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := echo.New().NewContext(req, s.recorder)
+	ctx.Set("userId", "999")
+
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), http.StatusUnauthorized, s.recorder.Code)
+	assert.JSONEq(s.T(), `{"error":"unauthorized"}`, s.recorder.Body.String())
 	s.assertMocks()
 }
 

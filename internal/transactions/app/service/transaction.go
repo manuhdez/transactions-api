@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
@@ -24,15 +23,12 @@ var (
 
 type TransactionService struct {
 	trxRepo transaction.Repository
-	accRepo account.Repository
-
-	events []event.Event
+	events  []event.Event
 }
 
-func NewTransactionService(trxRepo transaction.Repository, accRepo account.Repository) *TransactionService {
+func NewTransactionService(trxRepo transaction.Repository) *TransactionService {
 	return &TransactionService{
 		trxRepo: trxRepo,
-		accRepo: accRepo,
 	}
 }
 
@@ -42,10 +38,6 @@ func (srv *TransactionService) Deposit(ctx context.Context, trx transaction.Tran
 
 	if trx.Type != transaction.Deposit {
 		return fmt.Errorf("[TransactionService:Deposit]%w", ErrInvalidTransactionType)
-	}
-
-	if err := srv.isAccountAuthorized(ctx, &trx); err != nil {
-		return fmt.Errorf("[TransactionService:Deposit]%w", err)
 	}
 
 	if err := srv.trxRepo.Deposit(ctx, trx); err != nil {
@@ -64,9 +56,7 @@ func (srv *TransactionService) Withdraw(ctx context.Context, trx transaction.Tra
 		return fmt.Errorf("[TransactionService:Withdraw]%w", ErrInvalidTransactionType)
 	}
 
-	if err := srv.isAccountAuthorized(ctx, &trx); err != nil {
-		return fmt.Errorf("[TransactionService:Withdraw]%w", err)
-	}
+	// TODO: check if account has balance
 
 	if err := srv.trxRepo.Withdraw(ctx, trx); err != nil {
 		return fmt.Errorf("[TransactionService:Withdraw]%w", err)
@@ -93,23 +83,17 @@ func (srv *TransactionService) Transfer(ctx context.Context, trx transaction.Tra
 	// Withdraw from the origin account
 	withdraw := transaction.NewWithdraw(trx.From, trx.UserId, trx.Amount)
 
-	// Check user has access to origin account
-	if err := srv.isAccountAuthorized(ctx, &withdraw); err != nil {
-		return fmt.Errorf("[TransactionService:Transfer][err: %w]", err)
-	}
-
-	// Withdraw from origin account
-	if err := srv.trxRepo.Withdraw(ctx, withdraw); err != nil {
-		return fmt.Errorf("[TransactionService:Transfer][err: %w]", err)
+	// withdraws money from account if the user is authorized and and account has balance
+	if err := srv.Withdraw(ctx, withdraw); err != nil {
+		return fmt.Errorf("[TransactionService:Transfer]%w", err)
 	}
 
 	// Deposit into destination account
 	deposit := transaction.NewDeposit(trx.To, trx.UserId, trx.Amount)
 	if err := srv.trxRepo.Deposit(ctx, deposit); err != nil {
-		return fmt.Errorf("[TransactionService:Transfer][err: %w]", err)
+		return fmt.Errorf("[TransactionService:Transfer]%w", err)
 	}
 
-	srv.pushEvent(event.NewWithdrawCreated(withdraw))
 	srv.pushEvent(event.NewDepositCreated(deposit))
 
 	return nil
@@ -125,18 +109,4 @@ func (srv *TransactionService) PullEvents() []event.Event {
 // pushEvent appends an event to the list of events
 func (srv *TransactionService) pushEvent(ev event.Event) {
 	srv.events = append(srv.events, ev)
-}
-
-// isAccountAuthorized checks if the account exist and is owned by the user
-func (srv *TransactionService) isAccountAuthorized(ctx context.Context, trx *transaction.Transaction) error {
-	acc, err := srv.accRepo.FindById(ctx, trx.AccountId)
-	if err != nil {
-		return fmt.Errorf("[isAccountAuthorized]%w", err)
-	}
-
-	if acc.UserId != trx.UserId {
-		return fmt.Errorf("[isAccountAuthorized][err: %w]", ErrUnauthorized)
-	}
-
-	return nil
 }

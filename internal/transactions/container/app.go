@@ -30,6 +30,7 @@ var Services = wire.NewSet(
 	service.NewTransactionsRetriever,
 	service.NewCreateAccountService,
 	service.NewTransactionService,
+	service.NewAccountFinder,
 )
 
 var Controllers = wire.NewSet(

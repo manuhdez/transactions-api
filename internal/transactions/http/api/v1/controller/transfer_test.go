@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
-	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/transactions/test/mocks"
@@ -27,7 +26,6 @@ var (
 
 type transferSuite struct {
 	bus      *mocks.EventBus
-	accRepo  *mocks.AccountMockRepository
 	trxRepo  *mocks.TransactionRepository
 	transfer *service.TransactionService
 	ctrl     Transfer
@@ -35,13 +33,11 @@ type transferSuite struct {
 
 func setupTransferSuite() transferSuite {
 	bus := new(mocks.EventBus)
-	accRepo := new(mocks.AccountMockRepository)
 	trxRepo := new(mocks.TransactionRepository)
-	trx := service.NewTransactionService(trxRepo, accRepo)
+	trx := service.NewTransactionService(trxRepo)
 
 	return transferSuite{
 		bus:      bus,
-		accRepo:  accRepo,
 		trxRepo:  trxRepo,
 		transfer: trx,
 		ctrl:     NewTransferController(trx, bus),
@@ -50,7 +46,6 @@ func setupTransferSuite() transferSuite {
 
 func (s transferSuite) assertMocks(t *testing.T) {
 	s.bus.AssertExpectations(t)
-	s.accRepo.AssertExpectations(t)
 	s.trxRepo.AssertExpectations(t)
 }
 
@@ -62,7 +57,6 @@ func TestTransfer_Handle(t *testing.T) {
 		s := setupTransferSuite()
 		defer s.assertMocks(t)
 
-		s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{Id: "1", UserId: "999"}, nil)
 		withdraw := transaction.NewWithdraw("1", "999", 100)
 		s.trxRepo.On("Withdraw", mock.Anything, withdraw).Return(nil)
 		deposit := transaction.NewDeposit("2", "999", 100)
@@ -104,8 +98,7 @@ func TestTransfer_Handle(t *testing.T) {
 		s := setupTransferSuite()
 		defer s.assertMocks(t)
 
-		s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{}, errTransfer)
-
+		s.trxRepo.On("Withdraw", mock.Anything, mock.Anything).Return(errTransfer).Once()
 		body, err := json.Marshal(transferRequest{UserId: "999", From: "1", To: "2", Amount: 50})
 		require.NoError(t, err)
 

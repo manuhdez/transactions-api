@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
@@ -28,6 +29,7 @@ type withDrawSuite struct {
 	accRepo    *mocks.AccountMockRepository
 	trxRepo    *mocks.TransactionRepository
 	service    *service.TransactionService
+	accFinder  *service.AccountFinder
 	bus        *mocks.EventBus
 	controller controller.Withdraw
 	recorder   *httptest.ResponseRecorder
@@ -37,10 +39,12 @@ type withDrawSuite struct {
 func (s *withDrawSuite) SetupTest() {
 	s.accRepo = new(mocks.AccountMockRepository)
 	s.trxRepo = new(mocks.TransactionRepository)
-	s.service = service.NewTransactionService(s.trxRepo, s.accRepo)
+
+	s.service = service.NewTransactionService(s.trxRepo)
+	s.accFinder = service.NewAccountFinder(s.accRepo)
 
 	s.bus = new(mocks.EventBus)
-	s.controller = controller.NewWithdraw(s.service, s.bus)
+	s.controller = controller.NewWithdraw(s.service, s.accFinder, s.bus)
 
 	e := echo.New()
 	e.Validator = sharedhttp.NewRequestValidator()
@@ -74,6 +78,24 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 	err = s.controller.Handle(ctx)
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), 201, s.recorder.Code)
+	s.assertMocks()
+}
+
+func (s *withDrawSuite) TestAccountNotFound() {
+	trx := transaction.NewWithdraw("1", "999", 125)
+	body, err := json.Marshal(request.Withdraw{Account: trx.AccountId, Amount: trx.Amount, Currency: "EUR"})
+	require.NoError(s.T(), err)
+
+	req := httptest.NewRequest(http.MethodPost, "/withdraw", bytes.NewBuffer(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	s.accRepo.On("FindById", mock.Anything, mock.Anything).Return(account.Account{}, errAccountNotFound).Once()
+
+	ctx := s.server.NewContext(req, s.recorder)
+	ctx.Set("userId", "999")
+	err = s.controller.Handle(ctx)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), http.StatusUnauthorized, s.recorder.Code)
 	s.assertMocks()
 }
 

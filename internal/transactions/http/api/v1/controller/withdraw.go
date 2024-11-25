@@ -17,10 +17,15 @@ import (
 type Withdraw struct {
 	eventBus   event.Bus
 	trxService *service.TransactionService
+	accFinder  *service.AccountFinder
 }
 
-func NewWithdraw(s *service.TransactionService, b event.Bus) Withdraw {
-	return Withdraw{trxService: s, eventBus: b}
+func NewWithdraw(s *service.TransactionService, af *service.AccountFinder, b event.Bus) Withdraw {
+	return Withdraw{
+		trxService: s,
+		accFinder:  af,
+		eventBus:   b,
+	}
 }
 
 func (ctrl Withdraw) Handle(c echo.Context) error {
@@ -38,6 +43,14 @@ func (ctrl Withdraw) Handle(c echo.Context) error {
 	}
 
 	userId := c.Get("userId").(string)
+
+	// Check if user has access to account
+	account, err := ctrl.accFinder.Find(ctx, req.Account)
+	if err != nil || account.UserId != userId {
+		fmt.Printf("[Withdraw:Handle]%s", err)
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+
 	if err := ctrl.trxService.Withdraw(ctx, transaction.Transaction{
 		Type:      transaction.Withdrawal,
 		AccountId: req.Account,

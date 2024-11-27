@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/manuhdez/transactions-api/internal/transactions/app/service"
+	"github.com/manuhdez/transactions-api/internal/transactions/domain/account"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/event"
 	"github.com/manuhdez/transactions-api/internal/transactions/domain/transaction"
 )
@@ -17,16 +18,20 @@ type transferRequest struct {
 	From   string  `json:"from" validate:"required"`
 	To     string  `json:"to" validate:"required"`
 	Amount float32 `json:"amount" validate:"required"`
-	UserId string  `json:"userId" validate:"required"`
 }
 
 type Transfer struct {
 	eventBus        event.Bus
 	transferService *service.TransactionService
+	accFinder       *service.AccountFinder
 }
 
-func NewTransferController(srv *service.TransactionService, bus event.Bus) Transfer {
-	return Transfer{transferService: srv, eventBus: bus}
+func NewTransferController(srv *service.TransactionService, af *service.AccountFinder, bus event.Bus) Transfer {
+	return Transfer{
+		transferService: srv,
+		accFinder:       af,
+		eventBus:        bus,
+	}
 }
 
 func (ctrl Transfer) Handle(c echo.Context) error {
@@ -43,7 +48,24 @@ func (ctrl Transfer) Handle(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"msg": "invalid request data", "error": err})
 	}
 
-	if err := ctrl.transferService.Transfer(ctx, transaction.NewTransfer(req.UserId, req.From, req.To, req.Amount)); err != nil {
+	// Check accounts exist
+	origin, err := ctrl.accFinder.Find(ctx, req.From)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "origin account not found"})
+	}
+	_, err = ctrl.accFinder.Find(ctx, req.To)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "destination account not found"})
+	}
+
+	// Check the transaction can be made
+	if ok := ctrl.isTransferAllowed(c, req, origin); !ok {
+		log.Printf("[Transfer:Handle][CanTransfer]%s", err)
+		return c.JSON(http.StatusUnauthorized, echo.Map{"msg": "unauthorized request", "error": err})
+	}
+
+	userId := c.Get("userId").(string)
+	if err = ctrl.transferService.Transfer(ctx, transaction.NewTransfer(userId, req.From, req.To, req.Amount)); err != nil {
 		log.Printf("[Transfer:Handle][Transfer]%s", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"msg": "transfer operation failed"})
 	}
@@ -53,6 +75,24 @@ func (ctrl Transfer) Handle(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Transfer finished successfully"})
+}
+
+// isTransferAllowed checks if the user has access to the account and it has enough balance to perform the transfer
+func (ctrl Transfer) isTransferAllowed(c echo.Context, req transferRequest, origin account.Account) bool {
+	userId := c.Get("userId").(string)
+
+	if origin.UserId != userId {
+		log.Printf("[isTransferAllowed][userId: %s][msg: user does not have access to the origin account]", userId)
+		return false
+	}
+
+	// TODO: check account balance before transfer
+	// if origin.Balance < req.Amount {
+	// 	log.Printf("[isTransferAllowed][originAccount:%+v][err: not enough balance]", origin)
+	// 	return false, nil
+	// }
+
+	return true
 }
 
 // publishEvents publish the

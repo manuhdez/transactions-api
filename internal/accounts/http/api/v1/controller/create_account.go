@@ -11,10 +11,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/http/api/v1/request"
 )
 
-var (
-	ErrInvalidUserIdForCreate = errors.New("cannot create an account for a different user than the logged in")
-	ErrUnauthorized           = errors.New("unauthorized to create account")
-)
+var ErrUnauthorized = errors.New("unauthorized to create account")
 
 type CreateAccount struct {
 	service service.CreateService

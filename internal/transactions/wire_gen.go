@@ -30,7 +30,7 @@ func NewApp() container.App {
 	eventBus := infra.NewEventBus(accountCreated)
 	deposit := controller.NewDeposit(transactionService, accountFinder, eventBus)
 	withdraw := controller.NewWithdraw(transactionService, accountFinder, eventBus)
-	transfer := controller.NewTransferController(transactionService, eventBus)
+	transfer := controller.NewTransferController(transactionService, accountFinder, eventBus)
 	transactionsRetriever := service.NewTransactionsRetriever(transactionMysqlRepository)
 	findAllTransactions := controller.NewFindAllTransactions(transactionsRetriever)
 	findAccountTransactions := controller.NewFindAccountTransactions(transactionMysqlRepository)

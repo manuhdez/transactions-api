@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/app/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
 )

@@ -17,7 +17,7 @@ import (
 type transferRequest struct {
 	From   string  `json:"from" validate:"required"`
 	To     string  `json:"to" validate:"required"`
-	Amount float32 `json:"amount" validate:"required"`
+	Amount float32 `json:"amount" validate:"required,min=0,max=10000"`
 }
 
 type Transfer struct {
@@ -81,16 +81,20 @@ func (ctrl Transfer) Handle(c echo.Context) error {
 func (ctrl Transfer) isTransferAllowed(c echo.Context, req transferRequest, origin account.Account) bool {
 	userId := c.Get("userId").(string)
 
+	if req.Amount >= service.TransferMaxAmount {
+		log.Printf("[isTransferAllowed][userId: %s][msg: transfer amount cannot be bigger than %d]", userId, service.TransferMaxAmount)
+		return false
+	}
+
 	if origin.UserId.String() != userId {
 		log.Printf("[isTransferAllowed][userId: %s][msg: user does not have access to the origin account]", userId)
 		return false
 	}
 
-	// TODO: check account balance before transfer
-	// if origin.Balance < req.Amount {
-	// 	log.Printf("[isTransferAllowed][originAccount:%+v][err: not enough balance]", origin)
-	// 	return false, nil
-	// }
+	if origin.Balance() < req.Amount {
+		log.Printf("[isTransferAllowed][originAccount:%+v][err: not enough balance]", origin)
+		return false
+	}
 
 	return true
 }
@@ -108,8 +112,6 @@ func (ctrl Transfer) publishEvents(ctx context.Context) error {
 		if err := ctrl.eventBus.Publish(ctx, events[i]); err != nil {
 			// TODO: handle retry of unpublished events
 			errorList = append(errorList, err)
-		} else {
-			log.Printf("[Transfer][publishEvents][msg: new event published][event: %+v]", events[i])
 		}
 	}
 

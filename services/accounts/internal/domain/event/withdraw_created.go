@@ -7,8 +7,6 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
-var WithdrawCreatedType Type = "event.transactions.withdraw_created"
-
 type WithdrawCreated struct {
 	body []byte
 }

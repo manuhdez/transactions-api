@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/domain/account"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 )
 
 type AccountMockRepository struct {

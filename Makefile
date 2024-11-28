@@ -27,7 +27,7 @@ status:
 deps: deps-accounts deps-transactions deps-users
 
 deps-accounts: 
-	@cd internal/accounts && \
+	@cd internal/accounts/cmd/accounts && \
 	wire && \
 	cd - && \
 	make tidy-accounts

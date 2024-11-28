@@ -12,6 +12,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/infra/db"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/infra/queue/rabbitmq"
 	"github.com/manuhdez/transactions-api/shared/config"
@@ -25,6 +26,8 @@ var Databases = wire.NewSet(
 var Repositories = wire.NewSet(
 	wire.Bind(new(account.Repository), new(db.AccountPostgresRepository)),
 	db.NewAccountPostgresRepository,
+	wire.Bind(new(transaction.Repository), new(db.TransactionMysqlRepository)),
+	db.NewTransactionMysqlRepository,
 )
 
 var Services = wire.NewSet(
@@ -33,6 +36,9 @@ var Services = wire.NewSet(
 	service.NewDeleteAccountService,
 	service.NewIncreaseBalanceService,
 	service.NewDecreaseBalanceService,
+	service.NewTransactionService,
+	service.NewAccountFinder,
+	service.NewTransactionsRetriever,
 )
 
 var Controllers = wire.NewSet(
@@ -40,6 +46,11 @@ var Controllers = wire.NewSet(
 	controller.NewFindAccountController,
 	controller.NewFindAllAccounts,
 	controller.NewDeleteAccount,
+	controller.NewDeposit,
+	controller.NewWithdraw,
+	controller.NewTransferController,
+	controller.NewFindAllTransactions,
+	controller.NewFindAccountTransactions,
 )
 
 var Router = wire.NewSet(router.NewRouter)

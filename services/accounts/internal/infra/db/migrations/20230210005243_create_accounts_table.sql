@@ -2,8 +2,9 @@
 -- +goose StatementBegin
 CREATE TABLE "accounts"
 (
-    "id"      varchar NOT NULL,
-    "balance" NUMERIC DEFAULT 0,
+    id      VARCHAR(100) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
+    balance NUMERIC DEFAULT 0,
     PRIMARY KEY ("id")
 );
 -- +goose StatementEnd

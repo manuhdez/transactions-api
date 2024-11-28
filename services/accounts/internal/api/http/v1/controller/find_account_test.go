@@ -16,7 +16,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 )
 
-type testSuite struct {
+type findAccountsTestSuite struct {
 	suite.Suite
 	w          *httptest.ResponseRecorder
 	req        *http.Request
@@ -25,7 +25,7 @@ type testSuite struct {
 	controller FindAccount
 }
 
-func (s *testSuite) SetupTest() {
+func (s *findAccountsTestSuite) SetupTest() {
 	s.w = httptest.NewRecorder()
 	s.req = httptest.NewRequest(http.MethodGet, "/accounts/1", nil)
 
@@ -35,7 +35,7 @@ func (s *testSuite) SetupTest() {
 	s.controller = NewFindAccountController(service.NewFindAccountService(s.repository))
 }
 
-func (s *testSuite) TestWithExistingAccount() {
+func (s *findAccountsTestSuite) TestWithExistingAccount() {
 	expected := account.New("123", 33, "EUR")
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(expected, nil)
 	err := s.controller.Handle(s.ctx)
@@ -46,7 +46,7 @@ func (s *testSuite) TestWithExistingAccount() {
 	assert.JSONEq(s.T(), dtos.JsonStringFromAccount(expected), result)
 }
 
-func (s *testSuite) TestWithAccountNotFound() {
+func (s *findAccountsTestSuite) TestWithAccountNotFound() {
 	s.repository.On("Find", mock.Anything, mock.Anything).Return(account.Account{}, nil)
 	err := s.controller.Handle(s.ctx)
 	assert.NoError(s.T(), err)

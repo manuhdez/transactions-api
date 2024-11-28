@@ -14,6 +14,7 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/infra/db"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/infra/queue/rabbitmq"
 	"github.com/manuhdez/transactions-api/shared/config"
@@ -33,7 +34,16 @@ func BootstrapApp() App {
 	findAccount := controller.NewFindAccountController(accountsFinder)
 	deleteAccountService := service.NewDeleteAccountService(accountPostgresRepository)
 	deleteAccount := controller.NewDeleteAccount(deleteAccountService)
-	routerRouter := router.NewRouter(findAllAccounts, createAccount, findAccount, deleteAccount)
+	transactionMysqlRepository := db.NewTransactionMysqlRepository(gormDB)
+	transactionService := service.NewTransactionService(transactionMysqlRepository)
+	accountFinder := service.NewAccountFinder(accountPostgresRepository)
+	deposit := controller.NewDeposit(transactionService, accountFinder, eventBus)
+	withdraw := controller.NewWithdraw(transactionService, accountFinder, eventBus)
+	transfer := controller.NewTransferController(transactionService, accountFinder, eventBus)
+	transactionsRetriever := service.NewTransactionsRetriever(transactionMysqlRepository)
+	findAllTransactions := controller.NewFindAllTransactions(transactionsRetriever)
+	findAccountTransactions := controller.NewFindAccountTransactions(transactionMysqlRepository)
+	routerRouter := router.NewRouter(findAllAccounts, createAccount, findAccount, deleteAccount, deposit, withdraw, transfer, findAllTransactions, findAccountTransactions)
 	increaseBalanceService := service.NewIncreaseBalanceService(accountPostgresRepository)
 	depositCreated := event_handler.NewHandlerDepositCreated(increaseBalanceService)
 	decreaseBalance := service.NewDecreaseBalanceService(accountPostgresRepository)
@@ -46,11 +56,11 @@ func BootstrapApp() App {
 
 var Databases = wire.NewSet(config.NewDBConfig, config.NewGormDBConnection)
 
-var Repositories = wire.NewSet(wire.Bind(new(account.Repository), new(db.AccountPostgresRepository)), db.NewAccountPostgresRepository)
+var Repositories = wire.NewSet(wire.Bind(new(account.Repository), new(db.AccountPostgresRepository)), db.NewAccountPostgresRepository, wire.Bind(new(transaction.Repository), new(db.TransactionMysqlRepository)), db.NewTransactionMysqlRepository)
 
-var Services = wire.NewSet(service.NewCreateService, service.NewFindAccountService, service.NewDeleteAccountService, service.NewIncreaseBalanceService, service.NewDecreaseBalanceService)
+var Services = wire.NewSet(service.NewCreateService, service.NewFindAccountService, service.NewDeleteAccountService, service.NewIncreaseBalanceService, service.NewDecreaseBalanceService, service.NewTransactionService, service.NewAccountFinder, service.NewTransactionsRetriever)
 
-var Controllers = wire.NewSet(controller.NewCreateAccount, controller.NewFindAccountController, controller.NewFindAllAccounts, controller.NewDeleteAccount)
+var Controllers = wire.NewSet(controller.NewCreateAccount, controller.NewFindAccountController, controller.NewFindAllAccounts, controller.NewDeleteAccount, controller.NewDeposit, controller.NewWithdraw, controller.NewTransferController, controller.NewFindAllTransactions, controller.NewFindAccountTransactions)
 
 var Router = wire.NewSet(router.NewRouter)
 

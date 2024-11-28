@@ -40,7 +40,8 @@ services:
 
   users:
     build:
-      context: docker/app
+      context: .
+      dockerfile: internal/users/Dockerfile
     working_dir: /internal/users
     volumes:
       - ./internal:/internal

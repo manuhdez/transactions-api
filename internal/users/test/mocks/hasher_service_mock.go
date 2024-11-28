@@ -3,11 +3,11 @@ package mocks
 import (
 	"fmt"
 
-	"github.com/manuhdez/transactions-api/internal/users/domain/service"
+	"github.com/manuhdez/transactions-api/internal/users/internal/domain/service"
 )
 
 type HasherService struct {
-	service.HashService
+	domain_service.HashService
 	HashError    error
 	CompareError error
 }

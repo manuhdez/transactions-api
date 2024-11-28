@@ -10,10 +10,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
-
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/api"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/dtos"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 )
 
@@ -44,7 +43,7 @@ func (s *testSuite) TestWithExistingAccount() {
 
 	result := s.w.Body.String()
 	assert.Equal(s.T(), http.StatusOK, s.w.Code)
-	assert.JSONEq(s.T(), api.JsonStringFromAccount(expected), result)
+	assert.JSONEq(s.T(), dtos.JsonStringFromAccount(expected), result)
 }
 
 func (s *testSuite) TestWithAccountNotFound() {

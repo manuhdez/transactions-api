@@ -5,12 +5,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/api"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/dtos"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 )
 
 type findAllAccountsResponse struct {
-	Accounts []api.AccountJson `json:"accounts"`
+	Accounts []dtos.AccountJson `json:"accounts"`
 }
 
 type FindAllAccounts struct {
@@ -34,5 +34,5 @@ func (ctrl FindAllAccounts) Handle(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, findAllAccountsResponse{Accounts: api.NewJsonAccountList(accounts)})
+	return c.JSON(http.StatusOK, findAllAccountsResponse{Accounts: dtos.NewJsonAccountList(accounts)})
 }

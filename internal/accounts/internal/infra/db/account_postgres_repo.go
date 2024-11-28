@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
-	"github.com/manuhdez/transactions-api/internal/users/infra/metrics"
 )
 
 type AccountPostgresRepository struct {
@@ -29,7 +28,7 @@ func (r AccountPostgresRepository) Create(ctx context.Context, a account.Account
 		Balance:  a.Balance(),
 		Currency: a.Currency(),
 	}).Error; err != nil {
-		metrics.TrackDBErrorAdd()
+		// metrics.TrackDBErrorAdd()
 		return fmt.Errorf("[AccountPostgres:Create][err: %w]", err)
 	}
 
@@ -42,7 +41,7 @@ func (r AccountPostgresRepository) Find(ctx context.Context, id string) (account
 
 	var acc AccountPostgres
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&acc).Error; err != nil {
-		metrics.TrackDBErrorAdd()
+		// metrics.TrackDBErrorAdd()
 		return account.Account{}, fmt.Errorf("[AccountPostgresRepository:Find][err: %w]", err)
 	}
 
@@ -55,7 +54,7 @@ func (r AccountPostgresRepository) GetByUserId(ctx context.Context, userId strin
 
 	var accounts []AccountPostgres
 	if err := r.db.WithContext(ctx).Where("user_id = ?", userId).Find(&accounts).Error; err != nil {
-		metrics.TrackDBErrorAdd()
+		// metrics.TrackDBErrorAdd()
 		return nil, fmt.Errorf("[AccountPostgresRepository:GetByUserId][err: %w]", err)
 	}
 
@@ -67,7 +66,7 @@ func (r AccountPostgresRepository) Delete(ctx context.Context, id string) error 
 	log.Printf("[AccountPostgresRepository:Delete][accountId:%s]", id)
 
 	if err := r.db.WithContext(ctx).Delete(&AccountPostgres{Id: id}).Error; err != nil {
-		metrics.TrackDBErrorAdd()
+		// metrics.TrackDBErrorAdd()
 		return fmt.Errorf("[AccountPostgresRepository:Delete][err: %w]", err)
 	}
 
@@ -79,7 +78,7 @@ func (r AccountPostgresRepository) UpdateBalance(ctx context.Context, id string,
 	log.Printf("[AccountPostgresRepository:UpdateBalance][accountId:%s][balance:%f]", id, balance)
 
 	if err := r.db.WithContext(ctx).Model(&AccountPostgres{}).Where("id = ?", id).Update("balance", balance).Error; err != nil {
-		metrics.TrackDBErrorAdd()
+		// metrics.TrackDBErrorAdd()
 		return fmt.Errorf("[AccountPostgresRepository:UpdateBalance][err: %w]", err)
 	}
 

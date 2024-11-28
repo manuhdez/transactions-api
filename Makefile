@@ -1,154 +1,122 @@
-# docker compose
+.PHONY: migration migrate
+
+# docker commands
 build:
-	@echo "🛠 Building containers"
-	@docker-compose build --no-cache
+	@docker-compose build
 
 up:
-	@echo "▶️  Running application"
 	@docker-compose up -d
 
 down:
-	@echo "💥 Destroing containers"
 	@docker-compose down
 
-start:
-	@echo "▶️  Running application"
-	@docker-compose start
+### code commands
 
-stop:
-	@echo "✋ Stopping application"
-	@docker-compose stop
+# manage dependencies
+deps: deps-accounts deps-transactions deps-users deps-shared
 
-status:
-	@docker ps --format "📦 {{.ID}} - {{.Names}} {{.Ports}}"
-
-# dependencies
-# generate dependency tree
-deps: deps-accounts deps-transactions deps-users
-
-deps-accounts: 
-	@cd internal/accounts/cmd/accounts && \
-	wire && \
-	cd - && \
-	make tidy-accounts
+deps-accounts:
+	@go mod tidy -C ./services/accounts
+	@wire ./services/accounts/cmd/accounts
 
 deps-transactions:
-	@cd internal/transactions && \
-	wire && \
-	cd - && \
-	make tidy-transactions
+	@go mod tidy -C ./services/transactions
+	@wire ./services/transactions
 
 deps-users:
-	@cd internal/users && \
-	wire && \
-	cd - && \
-	make tidy-users
+	@go mod tidy -C ./services/users
+	@wire ./services/users/cmd/users
 
-# generate mocks
+deps-shared:
+	@go mod tidy -C ./shared
+
+# update mocks
 mocks: user-mocks accounts-mocks transactions-mocks
 
 user-mocks:
-	@cd ./internal/users && \
+	@cd ./services/users && \
 	mockery && \
 	cd ../..
 
 accounts-mocks:
-	@cd ./internal/accounts && \
+	@cd ./services/accounts && \
 	mockery && \
 	cd ../..
 
 transactions-mocks:
-	@cd ./internal/transactions && \
+	@cd ./services/transactions && \
 	mockery && \
 	cd ../..
 
-### go commands
+### ci commands
 
-# Build
+# build services
 go-build: go-build-accounts go-build-transactions go-build-users
 
 go-build-accounts:
-	@go build -C ./internal/accounts -o cmd/accounts .
+	@go build -C ./services/accounts -o cmd/accounts .
 
 go-build-transactions:
-	@go build -C ./internal/transactions -o ./cmd/transactions .
+	@go build -C ./services/transactions -o ./cmd/transactions .
 
 go-build-users:
-	@go build -C ./internal/users -o ./cmd/users .
+	@go build -C ./services/users -o ./cmd/users .
 
-# Deps
-tidy: tidy-accounts tidy-transactions tidy-users tidy-shared
-
-tidy-accounts:
-	@cd internal/accounts && go mod tidy && cd -
-
-tidy-transactions:
-	@cd internal/transactions && go mod tidy && cd -
-
-tidy-users:
-	@cd internal/users && go mod tidy && cd -
-
-tidy-shared:
-	@cd shared && go mod tidy && cd -
-
-# Testing
+# run tests
 test: test-accounts test-transactions test-users
 
 test-accounts:
 	@echo "Running accounts service tests..."
-	@gotestsum --format-icons hivis ./internal/accounts/...
+	@gotestsum --format-icons hivis ./services/accounts/...
 
 test-transactions:
 	@echo "\nRunning transactions service tests..."
-	@gotestsum --format-icons hivis ./internal/transactions/...
+	@gotestsum --format-icons hivis ./services/transactions/...
 
 test-users:
 	@echo "\nRunning users service tests..."
-	@gotestsum --format-icons hivis ./internal/users/...
+	@gotestsum --format-icons hivis ./services/users/...
 
-# Code linting
+# run linters
 lint: lint-accounts lint-transactions lint-users lint-shared
 
 lint-accounts:
-	@go vet ./internal/accounts/...
+	@go vet ./services/accounts/...
 
 lint-transactions:
-	@go vet ./internal/transactions/...
+	@go vet ./services/transactions/...
 
 lint-users:
-	@go vet ./internal/users/...
+	@go vet ./services/users/...
 
 lint-shared:
 	@go vet ./shared/...
 
-# Database commands
-#
+
+
+### Database commands
 db-status:
-	@echo "Accounts service migrations"
-	@docker exec transactions-api-accounts-1 goose -dir "db/migrations" status
-	@echo "\nTransactions service migrations"
+	@echo "accounts service migrations"
+	@docker exec transactions-api-accounts-1 goose -dir "internal/infra/db/migrations" status
+	@echo "transactions service migrations"
 	@docker exec transactions-api-transactions-1 goose -dir "db/migrations" status
-	@echo "\nUsers service migrations"
-	@docker exec transactions-api-users-1 goose -dir "db/migrations" status
+	@echo "users service migrations"
+	@docker exec transactions-api-users-1 goose -dir "internal/infra/db/migrations" status
 
 migrate-all:
-	@echo "Running all service migrations 🚀" && \
-	make migrate service=accounts && \
-	make migrate service=transactions && \
+	make migrate service=accounts
+	make migrate service=transactions
 	make migrate service=users
 
 run-migration:
-	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" $(cmd)
+	docker exec transactions-api-$(service)-1 goose -dir "internal/infra/db/migrations" $(cmd)
 
 migrate:
-	@echo "Running $(service) service migrations 🚀" && \
 	make run-migration service=$(service) cmd=up
 
 rollback:
-	@echo "Rolling back $(service) service migrations 🚀" && \
 	make run-migration service=$(service) cmd=down
 
 migration:
-	docker exec transactions-api-$(service)-1 goose -dir "db/migrations" create $(name) sql
+	docker exec transactions-api-$(service)-1 goose -dir "internal/infra/db/migrations" create $(name) sql
 
-.PHONY: migration migrate

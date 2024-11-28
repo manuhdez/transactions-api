@@ -2,13 +2,13 @@ services:
   accounts:
     build:
       context: .
-      dockerfile: internal/accounts/Dockerfile
-    working_dir: /internal/accounts
+      dockerfile: services/accounts/Dockerfile
+    working_dir: /services/accounts
     volumes:
-      - ./internal:/internal
+      - ./services:/services
       - ./shared:/shared
     env_file:
-      - internal/accounts/.env
+      - services/accounts/.env
       - .env
     environment:
       APP_PORT: "8081"
@@ -22,12 +22,12 @@ services:
   transactions:
     build:
       context: docker/app
-    working_dir: /internal/transactions
+    working_dir: /services/transactions
     volumes:
-      - ./internal:/internal
+      - ./services:/services
       - ./shared:/shared
     env_file:
-      - internal/transactions/.env
+      - services/transactions/.env
       - .env
     environment:
       APP_PORT: "8082"
@@ -41,13 +41,13 @@ services:
   users:
     build:
       context: .
-      dockerfile: internal/users/Dockerfile
-    working_dir: /internal/users
+      dockerfile: services/users/Dockerfile
+    working_dir: /services/users
     volumes:
-      - ./internal:/internal
+      - ./services:/services
       - ./shared:/shared
     env_file:
-      - internal/users/.env
+      - services/users/.env
       - .env
     environment:
       APP_PORT: "8083"

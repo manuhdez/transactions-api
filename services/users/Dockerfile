@@ -10,11 +10,11 @@ COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
 WORKDIR /app
 
-COPY ./internal/users /internal/users
+COPY ./services/users /services/users
 COPY ./shared /shared
 
 # Install dependencies in the users folder
-WORKDIR /internal/users
+WORKDIR /services/users
 RUN go mod tidy
 RUN go mod verify
 
@@ -26,6 +26,6 @@ RUN go mod verify
 # Reset workdir back to normal
 WORKDIR /app
 
-COPY ./internal/users/.air.toml /
+COPY ./services/users/.air.toml /
 
 ENTRYPOINT ["air"]

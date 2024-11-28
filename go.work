@@ -1,8 +1,8 @@
 go 1.23.2
 
 use (
-	./internal/accounts
-	./internal/transactions
-	./internal/users
+	./services/accounts
+	./services/transactions
+	./services/users
 	./shared
 )

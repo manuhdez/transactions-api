@@ -2,7 +2,6 @@ go 1.23.2
 
 use (
 	./services/accounts
-	./services/transactions
 	./services/users
 	./shared
 )

@@ -19,25 +19,6 @@ services:
       - rabbit
       - database
 
-#  transactions:
-#    build:
-#      context: docker/app
-#    working_dir: /services/transactions
-#    volumes:
-#      - ./services:/services
-#      - ./shared:/shared
-#    env_file:
-#      - services/transactions/.env
-#      - .env
-#    environment:
-#      APP_PORT: "8082"
-#    ports:
-#      - "8082:8082"
-#    restart: always
-#    depends_on:
-#      - rabbit
-#      - database
-
   users:
     build:
       context: .

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/api"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/dtos"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
@@ -52,7 +52,7 @@ func TestFindAllController(t *testing.T) {
 
 		// Transform account models into json account models and marshal them to get a json string
 		expected, err := json.Marshal(findAllAccountsResponse{
-			Accounts: api.NewJsonAccountList(accounts),
+			Accounts: dtos.NewJsonAccountList(accounts),
 		})
 		require.NoError(t, err)
 

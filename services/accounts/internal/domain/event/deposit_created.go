@@ -7,8 +7,6 @@ import (
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
-var DepositCreatedType Type = "event.accounts.deposit_created"
-
 type DepositCreated struct {
 	body []byte
 }

@@ -18,8 +18,6 @@ type AccountCreatedBody struct {
 	Currency string  `json:"currency"`
 }
 
-var AccountCreatedType Type = "event.accounts.account_created"
-
 func NewAccountCreated(acc account.Account) AccountCreated {
 	body := AccountCreatedBody{
 		Type:     string(AccountCreatedType),

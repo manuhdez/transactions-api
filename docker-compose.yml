@@ -1,7 +1,8 @@
 services:
   accounts:
     build:
-      context: docker/app
+      context: .
+      dockerfile: internal/accounts/Dockerfile
     working_dir: /internal/accounts
     volumes:
       - ./internal:/internal

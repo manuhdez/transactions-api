@@ -3,8 +3,9 @@ package mocks
 import (
 	"context"
 
-	"github.com/manuhdez/transactions-api/internal/accounts/domain/event"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
 )
 
 type EventBus struct {

@@ -3,6 +3,8 @@ package event
 import (
 	"encoding/json"
 	"log"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
 var DepositCreatedType Type = "event.accounts.deposit_created"
@@ -17,10 +19,10 @@ type DepositCreatedBody struct {
 	Amount  float32 `json:"amount"`
 }
 
-func NewDepositCreated(id string, account string, amount float32) DepositCreated {
-	eventType := string(DepositCreatedType)
-	body, _ := json.Marshal(DepositCreatedBody{eventType, account, amount})
-	return DepositCreated{body}
+func NewDepositCreated(trx transaction.Transaction) DepositCreated {
+	body := DepositCreatedBody{string(DepositCreatedType), trx.AccountId, trx.Amount}
+	b, _ := json.Marshal(body)
+	return DepositCreated{b}
 }
 
 func NewDepositCreatedBody(data []byte) (DepositCreatedBody, error) {

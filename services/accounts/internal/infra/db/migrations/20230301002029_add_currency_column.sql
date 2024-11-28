@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE accounts
-    ADD "currency" varchar(3) DEFAULT 'EUR';
+    ADD "currency" VARCHAR(3) DEFAULT 'EUR';
 -- +goose StatementEnd
 
 -- +goose Down

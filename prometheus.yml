@@ -13,8 +13,3 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ['accounts:8081']
-
-  - job_name: 'transactions'
-    scrape_interval: 10s
-    static_configs:
-      - targets: ['transactions:8082']

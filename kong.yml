@@ -19,17 +19,6 @@ services:
           - /api/v1/accounts
           - /api/v1/accounts/:id
 
-  - name: transactions-service
-    url: http://host.docker.internal:8082
-    routes:
-      - name: health-check-transactions
-        strip_path: true
-        path_handling: v0
-        methods:
-          - GET
-        paths:
-          - /health/transactions
-
       - name: transactions-get
         strip_path: false
         methods:
@@ -82,12 +71,6 @@ services:
 plugins:
   - name: request-transformer
     route: health-check-accounts
-    config:
-      replace:
-        uri: "/status"
-
-  - name: request-transformer
-    route: health-check-transactions
     config:
       replace:
         uri: "/status"

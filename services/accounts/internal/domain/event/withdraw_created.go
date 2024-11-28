@@ -3,6 +3,8 @@ package event
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
 var WithdrawCreatedType Type = "event.transactions.withdraw_created"
@@ -17,6 +19,11 @@ type WithdrawCreatedBody struct {
 	Amount  float32 `json:"amount"`
 }
 
+func NewWithdrawCreated(trx transaction.Transaction) WithdrawCreated {
+	body := WithdrawCreatedBody{string(WithdrawCreatedType), trx.AccountId, trx.Amount}
+	b, _ := json.Marshal(body)
+	return WithdrawCreated{b}
+}
 func NewWithdrawCreatedBody(data []byte) (WithdrawCreatedBody, error) {
 	var body WithdrawCreatedBody
 	err := json.Unmarshal(data, &body)

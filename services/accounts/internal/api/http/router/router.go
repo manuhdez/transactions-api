@@ -22,6 +22,11 @@ func NewRouter(
 	createAccount controller.CreateAccount,
 	findAccount controller.FindAccount,
 	deleteAccount controller.DeleteAccount,
+	depositController controller.Deposit,
+	withdrawController controller.Withdraw,
+	transferController controller.Transfer,
+	findAllTransactionsController controller.FindAllTransactions,
+	findAccountTransactions controller.FindAccountTransactions,
 ) Router {
 	e := echo.New()
 	e.Validator = sharedhttp.NewRequestValidator()
@@ -29,6 +34,7 @@ func NewRouter(
 	// Register global middleware
 	e.Use(middleware.CORS())
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	e.GET("/status", statusHandler)
 
@@ -42,6 +48,12 @@ func NewRouter(
 		v1.POST("/accounts", createAccount.Handle)
 		v1.GET("/accounts/:id", findAccount.Handle)
 		v1.DELETE("/accounts/:id", deleteAccount.Handle)
+
+		v1.POST("/deposit", depositController.Handle)
+		v1.POST("/withdraw", withdrawController.Handle)
+		v1.POST("/transfer", transferController.Handle)
+		v1.GET("/transactions", findAllTransactionsController.Handle)
+		v1.GET("/transactions/:id", findAccountTransactions.Handle)
 	}
 
 	e.GET("/metrics", sharedhttp.EchoWrapper(promhttp.Handler()))

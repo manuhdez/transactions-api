@@ -32,12 +32,14 @@ var Repositories = wire.NewSet(
 
 var Services = wire.NewSet(
 	service.NewCreateService,
+	service.NewAccountFinder,
 	service.NewFindAccountService,
 	service.NewDeleteAccountService,
 	service.NewIncreaseBalanceService,
 	service.NewDecreaseBalanceService,
-	service.NewTransactionService,
-	service.NewAccountFinder,
+	service.NewDepositService,
+	service.NewWithdrawService,
+	service.NewTransferService,
 	service.NewTransactionsRetriever,
 )
 

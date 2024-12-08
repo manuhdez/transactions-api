@@ -17,12 +17,12 @@ import (
 
 type testSuite struct {
 	suite.Suite
-	repository *mocks.AccountMockRepository
+	repository *mocks.AccountRepository
 	service    AccountsFinder
 }
 
 func (s *testSuite) SetupTest() {
-	s.repository = new(mocks.AccountMockRepository)
+	s.repository = new(mocks.AccountRepository)
 	s.service = NewFindAccountService(s.repository)
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
 type CreateService struct {
@@ -24,7 +25,7 @@ func (s CreateService) Create(ctx context.Context, acc account.Account) error {
 		return fmt.Errorf("[CreateService:Create][err: %w]", err)
 	}
 
-	if err := s.bus.Publish(ctx, event.NewAccountCreated(acc)); err != nil {
+	if err := s.bus.Publish(ctx, transaction.NewAccountCreated(acc)); err != nil {
 		log.Printf("[CreateService:Create][event: NewAccountCreated][err: %s]", err)
 	}
 

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,8 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
+	"github.com/manuhdez/transactions-api/shared/domain"
 )
 
 type depositRequest struct {
@@ -20,16 +19,14 @@ type depositRequest struct {
 }
 
 type Deposit struct {
-	eventBus      event.Bus
-	trxService    *service.TransactionService
-	accountFinder *service.AccountFinder
+	depositService *service.DepositService
+	accountFinder  *service.AccountFinder
 }
 
-func NewDeposit(s *service.TransactionService, f *service.AccountFinder, b event.Bus) Deposit {
+func NewDeposit(s *service.DepositService, f *service.AccountFinder) Deposit {
 	return Deposit{
-		trxService:    s,
-		accountFinder: f,
-		eventBus:      b,
+		depositService: s,
+		accountFinder:  f,
 	}
 }
 
@@ -51,31 +48,11 @@ func (ctrl Deposit) Handle(c echo.Context) error {
 	}
 
 	// Execute deposit transaction
-	deposit := transaction.NewDeposit(req.Account, userId, req.Amount)
-	if err = ctrl.trxService.Deposit(ctx, deposit); err != nil {
+	deposit := transaction.CreateDeposit(account, domain.NewID(userId), req.Amount)
+	if err = ctrl.depositService.Deposit(ctx, deposit); err != nil {
 		log.Printf("[Deposit:Handle]%s", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": "could not deposit amount into the account"})
 	}
 
-	if err = ctrl.publishEvents(ctx, ctrl.trxService.PullEvents()); err != nil {
-		log.Printf("[Deposit:Handle]%s", err)
-	}
-
 	return c.JSON(http.StatusCreated, echo.Map{"message": "Deposit successfully created"})
-}
-
-func (ctrl Deposit) publishEvents(ctx context.Context, events []event.Event) error {
-	var errList []error
-	for i := range events {
-		if err := ctrl.eventBus.Publish(ctx, events[i]); err != nil {
-			log.Printf("[Deposit:publishEvents][failed to publish event]%s", err)
-			errList = append(errList, err)
-		}
-	}
-
-	if len(errList) > 0 {
-		return fmt.Errorf("[publishEvents][err: failed to publish %d events][errors: %+v]", len(errList), errList)
-	}
-
-	return nil
 }

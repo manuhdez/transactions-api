@@ -5,13 +5,15 @@ filename: "{{.PackageName}}_{{.InterfaceName | snakecase | lower }}.go"
 mockname: "{{.PackageName | firstUpper }}{{.InterfaceName}}"
 
 packages:
-  github.com/manuhdez/transactions-api/internal/accounts/internal/app/service:
+  github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account:
     interfaces:
-      Depositer:
-      Withdrawer:
-      Transferer:
-
+      Repository:
+      Finder:
 
   github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction:
     interfaces:
       Repository:
+      Transferer:
+        config:
+          filename: transferer.go
+          mockname: Transferer

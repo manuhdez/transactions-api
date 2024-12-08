@@ -16,14 +16,14 @@ import (
 
 type CreateServiceTestSuite struct {
 	suite.Suite
-	Repository *mocks.AccountMockRepository
+	Repository *mocks.AccountRepository
 	Bus        *mocks.EventBus
 	Account    account.Account
 	ctx        context.Context
 }
 
 func (s *CreateServiceTestSuite) SetupTest() {
-	s.Repository = new(mocks.AccountMockRepository)
+	s.Repository = new(mocks.AccountRepository)
 	s.Bus = new(mocks.EventBus)
 	s.Account = account.NewWithUserID("333", "123", 0, "EUR")
 	s.ctx = context.Background()

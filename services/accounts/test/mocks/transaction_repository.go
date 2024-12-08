@@ -187,6 +187,53 @@ func (_c *TransactionRepository_FindByAccount_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// Transfer provides a mock function with given fields: ctx, t
+func (_m *TransactionRepository) Transfer(ctx context.Context, t transaction.Transfer) error {
+	ret := _m.Called(ctx, t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Transfer")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, transaction.Transfer) error); ok {
+		r0 = rf(ctx, t)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TransactionRepository_Transfer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Transfer'
+type TransactionRepository_Transfer_Call struct {
+	*mock.Call
+}
+
+// Transfer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - t transaction.Transfer
+func (_e *TransactionRepository_Expecter) Transfer(ctx interface{}, t interface{}) *TransactionRepository_Transfer_Call {
+	return &TransactionRepository_Transfer_Call{Call: _e.mock.On("Transfer", ctx, t)}
+}
+
+func (_c *TransactionRepository_Transfer_Call) Run(run func(ctx context.Context, t transaction.Transfer)) *TransactionRepository_Transfer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(transaction.Transfer))
+	})
+	return _c
+}
+
+func (_c *TransactionRepository_Transfer_Call) Return(_a0 error) *TransactionRepository_Transfer_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TransactionRepository_Transfer_Call) RunAndReturn(run func(context.Context, transaction.Transfer) error) *TransactionRepository_Transfer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Withdraw provides a mock function with given fields: ctx, t
 func (_m *TransactionRepository) Withdraw(ctx context.Context, t transaction.Transaction) error {
 	ret := _m.Called(ctx, t)

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,8 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
+	"github.com/manuhdez/transactions-api/shared/domain"
 )
 
 type withdrawRequest struct {
@@ -20,16 +19,14 @@ type withdrawRequest struct {
 }
 
 type Withdraw struct {
-	eventBus   event.Bus
-	trxService *service.TransactionService
-	accFinder  *service.AccountFinder
+	withdrawSrv *service.WithdrawService
+	accFinder   *service.AccountFinder
 }
 
-func NewWithdraw(s *service.TransactionService, af *service.AccountFinder, b event.Bus) Withdraw {
+func NewWithdraw(s *service.WithdrawService, af *service.AccountFinder) Withdraw {
 	return Withdraw{
-		trxService: s,
-		accFinder:  af,
-		eventBus:   b,
+		withdrawSrv: s,
+		accFinder:   af,
 	}
 }
 
@@ -56,34 +53,11 @@ func (ctrl Withdraw) Handle(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
 
-	if err := ctrl.trxService.Withdraw(ctx, transaction.Transaction{
-		Type:      transaction.Withdrawal,
-		AccountId: req.Account,
-		Amount:    req.Amount,
-		UserId:    userId,
-	}); err != nil {
+	trx := transaction.CreateWithdrawal(account, domain.NewID(userId), req.Amount)
+	if err := ctrl.withdrawSrv.Withdraw(ctx, trx); err != nil {
 		log.Printf("[Withdraw:Handle][Withdraw]%s", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"msg": "withdraw operation failed"})
 	}
 
-	if err := ctrl.publishEvents(ctx, ctrl.trxService.PullEvents()); err != nil {
-		log.Printf("[Withdraw:Handle]%s", err)
-	}
-
 	return c.JSON(http.StatusCreated, echo.Map{"message": "Withdraw successfully created"})
-}
-
-func (ctrl Withdraw) publishEvents(ctx context.Context, events []event.Event) error {
-	var errList []error
-	for i := range events {
-		if err := ctrl.eventBus.Publish(ctx, events[i]); err != nil {
-			errList = append(errList, err)
-		}
-	}
-
-	if len(errList) > 0 {
-		return fmt.Errorf("[publishEvents][err: failed to publish %d events][errors %+v]", len(errList), errList)
-	}
-
-	return nil
 }

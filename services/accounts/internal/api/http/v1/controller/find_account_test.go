@@ -21,7 +21,7 @@ type findAccountsTestSuite struct {
 	w          *httptest.ResponseRecorder
 	req        *http.Request
 	ctx        echo.Context
-	repository *mocks.AccountMockRepository
+	repository *mocks.AccountRepository
 	controller FindAccount
 }
 
@@ -31,7 +31,7 @@ func (s *findAccountsTestSuite) SetupTest() {
 
 	e := echo.New()
 	s.ctx = e.NewContext(s.req, s.w)
-	s.repository = new(mocks.AccountMockRepository)
+	s.repository = new(mocks.AccountRepository)
 	s.controller = NewFindAccountController(service.NewFindAccountService(s.repository))
 }
 

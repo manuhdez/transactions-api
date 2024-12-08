@@ -39,6 +39,27 @@ func (r TransactionMysqlRepository) Withdraw(ctx context.Context, trx transactio
 	return nil
 }
 
+// Transfer saves a transfer transaction
+func (r TransactionMysqlRepository) Transfer(ctx context.Context, trx transaction.Transfer) error {
+	log.Printf("[TransactionMysqlRepository:Transfer][trx:%+v]", trx)
+
+	if txErr := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.saveTransaction(ctx, trx.Withdrawal()); err != nil {
+			return fmt.Errorf("[TransactionMysqlRepository:Transfer][Withdrawal]%w", err)
+		}
+
+		if err := r.saveTransaction(ctx, trx.Deposit()); err != nil {
+			return fmt.Errorf("[TransactionMysqlRepository:Transfer][Deposit]%w", err)
+		}
+
+		return nil
+	}); txErr != nil {
+		return fmt.Errorf("[TransactionMysqlRepository:Transfer][err: %w]", txErr)
+	}
+
+	return nil
+}
+
 // All retrieves a list with all transactions
 func (r TransactionMysqlRepository) All(ctx context.Context, userId string) ([]transaction.Transaction, error) {
 	log.Printf("[TransactionMysqlRepository:All][userId:%s]", userId)

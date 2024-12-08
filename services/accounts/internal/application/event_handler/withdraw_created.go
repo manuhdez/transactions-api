@@ -6,6 +6,7 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 )
 
 var WithdrawCreatedType event.Type = "event.transactions.withdraw_created"
@@ -19,7 +20,7 @@ func NewWithdrawCreated(srv service.DecreaseBalance) WithdrawCreated {
 }
 
 func (handler WithdrawCreated) Handle(_ context.Context, e event.Event) error {
-	data, err := event.NewWithdrawCreatedBody(e.Body())
+	data, err := transaction.NewWithdrawCreatedBody(e.Body())
 	if err != nil {
 		fmt.Printf("There was an error parsing the event body: %e", err)
 		return err

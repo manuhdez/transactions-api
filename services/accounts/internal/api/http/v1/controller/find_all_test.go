@@ -31,7 +31,7 @@ func TestFindAllController(t *testing.T) {
 			account.NewWithUserID("zxc", "123", 12.5, "USD"),
 		}
 
-		repo := new(mocks.AccountMockRepository)
+		repo := new(mocks.AccountRepository)
 		repo.On("GetByUserId", mock.Anything, mock.Anything).Return(accounts, nil)
 
 		ctx.Set("userId", "123")

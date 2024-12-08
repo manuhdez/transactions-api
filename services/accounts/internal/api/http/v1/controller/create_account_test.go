@@ -23,7 +23,7 @@ type CreateAccountTestSuite struct {
 
 	srv     *echo.Echo
 	w       *httptest.ResponseRecorder
-	repo    *mocks.AccountMockRepository
+	repo    *mocks.AccountRepository
 	bus     *mocks.EventBus
 	creator service.CreateService
 	ctrl    CreateAccount
@@ -34,7 +34,7 @@ func (s *CreateAccountTestSuite) SetupTest() {
 	s.srv.Validator = sharedhttp.NewRequestValidator()
 	s.w = httptest.NewRecorder()
 
-	s.repo = new(mocks.AccountMockRepository)
+	s.repo = new(mocks.AccountRepository)
 	s.bus = new(mocks.EventBus)
 
 	s.creator = service.NewCreateService(s.repo, s.bus)

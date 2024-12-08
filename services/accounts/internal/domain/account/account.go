@@ -34,3 +34,7 @@ func (a Account) Balance() float32 {
 func (a Account) Currency() string {
 	return a.currency
 }
+
+func (a Account) IsOwner(userID domain.ID) bool {
+	return a.UserId == userID
+}

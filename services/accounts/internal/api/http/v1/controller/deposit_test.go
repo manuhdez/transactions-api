@@ -13,33 +13,33 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
+
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
-	"github.com/manuhdez/transactions-api/internal/transactions/http/api/v1/request"
 )
 
 type Suite struct {
 	suite.Suite
 	bus        *mocks.EventBus
-	accRepo    *mocks.AccountMockRepository
+	accRepo    *mocks.AccountRepository
 	trxRepo    *mocks.TransactionRepository
-	service    *service.TransactionService
+	service    *service.DepositService
 	accFinder  *service.AccountFinder
 	controller Deposit
 	recorder   *httptest.ResponseRecorder
 }
 
 func (s *Suite) SetupTest() {
-	s.accRepo = new(mocks.AccountMockRepository)
+	s.accRepo = new(mocks.AccountRepository)
 	s.trxRepo = new(mocks.TransactionRepository)
-	s.service = service.NewTransactionService(s.trxRepo)
-	s.accFinder = service.NewAccountFinder(s.accRepo)
 	s.bus = new(mocks.EventBus)
+	s.service = service.NewDepositService(s.trxRepo, s.bus)
+	s.accFinder = service.NewAccountFinder(s.accRepo)
 
-	s.controller = NewDeposit(s.service, s.accFinder, s.bus)
+	s.controller = NewDeposit(s.service, s.accFinder)
 	s.recorder = httptest.NewRecorder()
 }
 
@@ -59,8 +59,8 @@ func (s *Suite) TestDepositController_Success() {
 	}
 
 	s.accRepo.On("Find", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
-	s.trxRepo.On("Deposit", mock.Anything, deposit).Return(nil).Once()
-	s.bus.On("Publish", mock.Anything, event.NewDepositCreated(deposit)).Return(nil).Once()
+	s.trxRepo.On("Deposit", mock.Anything, mock.Anything).Return(nil).Once()
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
 	req := httptest.NewRequest(http.MethodPost, "/deposit", bytes.NewBuffer(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

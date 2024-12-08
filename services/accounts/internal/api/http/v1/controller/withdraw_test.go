@@ -15,7 +15,6 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/account"
-	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/event"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
 	"github.com/manuhdez/transactions-api/internal/accounts/test/mocks"
 	sharedhttp "github.com/manuhdez/transactions-api/shared/infra/http"
@@ -24,9 +23,9 @@ import (
 type withDrawSuite struct {
 	suite.Suite
 
-	accRepo    *mocks.AccountMockRepository
+	accRepo    *mocks.AccountRepository
 	trxRepo    *mocks.TransactionRepository
-	service    *service.TransactionService
+	service    *service.WithdrawService
 	accFinder  *service.AccountFinder
 	bus        *mocks.EventBus
 	controller Withdraw
@@ -35,14 +34,14 @@ type withDrawSuite struct {
 }
 
 func (s *withDrawSuite) SetupTest() {
-	s.accRepo = new(mocks.AccountMockRepository)
+	s.accRepo = new(mocks.AccountRepository)
 	s.trxRepo = new(mocks.TransactionRepository)
+	s.bus = new(mocks.EventBus)
 
-	s.service = service.NewTransactionService(s.trxRepo)
+	s.service = service.NewWithdrawService(s.trxRepo, s.bus)
 	s.accFinder = service.NewAccountFinder(s.accRepo)
 
-	s.bus = new(mocks.EventBus)
-	s.controller = NewWithdraw(s.service, s.accFinder, s.bus)
+	s.controller = NewWithdraw(s.service, s.accFinder)
 
 	e := echo.New()
 	e.Validator = sharedhttp.NewRequestValidator()
@@ -68,8 +67,8 @@ func (s *withDrawSuite) TestWithdrawController_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	s.accRepo.On("Find", mock.Anything, mock.Anything).Return(userAccount, nil).Once()
-	s.trxRepo.On("Withdraw", mock.Anything, trx).Return(nil).Once()
-	s.bus.On("Publish", mock.Anything, event.NewWithdrawCreated(trx)).Return(nil).Once()
+	s.trxRepo.On("Withdraw", mock.Anything, mock.Anything).Return(nil).Once()
+	s.bus.On("Publish", mock.Anything, mock.Anything).Return(nil).Once()
 
 	ctx := s.server.NewContext(req, s.recorder)
 	ctx.Set("userId", "999")

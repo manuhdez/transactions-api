@@ -45,10 +45,10 @@ mocks-accounts:
 go-build: go-build-accounts go-build-users
 
 go-build-accounts:
-	@go build -C ./services/accounts -o cmd/accounts .
+	@go build -C ./services/accounts/cmd/accounts -o accounts .
 
 go-build-users:
-	@go build -C ./services/users -o ./cmd/users .
+	@go build -C ./services/users/cmd/users -o users .
 
 # run tests
 test: test-accounts test-users

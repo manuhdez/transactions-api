@@ -55,7 +55,7 @@ func (s *testSuite) TestFindAllSuccess() {
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), http.StatusOK, w.Code)
 
-	res, err := json.Marshal(findAllTransactionsResponse{Transactions: transactions})
+	res, err := json.Marshal(newFindAllTransactionsResponse(transactions))
 	require.NoError(s.T(), err)
 	assert.JSONEq(s.T(), string(res), w.Body.String())
 }

@@ -8,11 +8,12 @@ import (
 
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/application/service"
 	"github.com/manuhdez/transactions-api/internal/accounts/internal/domain/transaction"
+	"github.com/manuhdez/transactions-api/internal/accounts/internal/infra/db"
 )
 
 type findAllTransactionsResponse struct {
-	Transactions []transaction.Transaction `json:"transactions"`
-	Error        string                    `json:"error,omitempty"`
+	Transactions []db.JsonTransaction `json:"transactions"`
+	Error        string               `json:"error,omitempty"`
 }
 
 type FindAllTransactions struct {
@@ -36,5 +37,14 @@ func (ctrl FindAllTransactions) Handle(c echo.Context) error {
 		)
 	}
 
-	return c.JSON(http.StatusOK, findAllTransactionsResponse{Transactions: transactions})
+	return c.JSON(http.StatusOK, newFindAllTransactionsResponse(transactions))
+}
+
+func newFindAllTransactionsResponse(trx []transaction.Transaction) findAllTransactionsResponse {
+	transactions := make([]db.JsonTransaction, len(trx))
+	for i := range trx {
+		transactions[i] = db.NewJsonTransaction(trx[i])
+	}
+
+	return findAllTransactionsResponse{Transactions: transactions}
 }
